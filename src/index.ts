@@ -64,7 +64,7 @@ function getMockValue(mock: IMock, method: string, pathname: string) {
   return false;
 }
 
-export default function serveMock(root: string, options?: ServeMockOptions) {
+export function createServe(root: string, options?: ServeMockOptions) {
   const opts = Object.assign({ extensions: ['.js', '.ts'], cache: true }, options);
 
   return function(req: IncomingMessage, res: ServerResponse, next: Function) {
