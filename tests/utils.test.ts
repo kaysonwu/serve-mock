@@ -1,15 +1,11 @@
 import { delay, delays } from '../src/utils';
 import { MockValue, IMock } from '../src';
-
-interface MockResponse {
-  content: any;
-  headers: Record<string, string>;
-}
+import { createServerResponse, Response } from './utils';
 
 const testDelay = (value: MockValue, ms: number = 5) => {
-  return new Promise<MockResponse>((resolve) => {
-    let response: Partial<MockResponse> = {};
+  return new Promise<Response>((resolve) => {
     let val = value;
+    const res = createServerResponse((res) => resolve(res));
 
     if (typeof value === 'function') {
       val = function(req, res) {
@@ -17,26 +13,7 @@ const testDelay = (value: MockValue, ms: number = 5) => {
       }
     }
 
-    delay(val, ms)({} as any, {
-      write(content) {
-        response = {
-          ...response,
-          content,
-        };
-      },
-      setHeader(name, value) {
-        response = {
-          ...response,
-          headers: {
-            ...response.headers,
-            [name]: value,
-          },
-        };
-      },
-      end() {
-        resolve(response as MockResponse);
-      },
-    } as any);
+    delay(val, ms)({} as any, res);
   });
 }
 
