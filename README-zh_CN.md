@@ -1,6 +1,6 @@
 <h1 align="center">Serve Mock</h1>
 <div align="center">
-A middleware for serving mock files
+用于提供 Mock 文件的中间件
 <br /><br />
 
 ![npm](https://img.shields.io/npm/v/serve-mock)
@@ -9,16 +9,16 @@ A middleware for serving mock files
 ![License](https://img.shields.io/npm/l/serve-mock)
 [![Build Status](https://travis-ci.com/kaysonwu/serve-mock.svg?branch=master)](https://travis-ci.com/kaysonwu/serve-mock)
 <br /><br />
-English | [中文](README-zh_CN.md) 
+[English](README.md) | 中文 
 </div>
 
-- [Installation](#installation)
-- [Usage](#usage)
+- [安装](#安装)
+- [使用](#使用)
   - [webpack-dev-server](#webpack-dev-server)
   - [Utils](#utils)
   - [Typescript](#typescript)
 
-## Installation
+## 安装
 
 ```
 yarn add -D serve-mock
@@ -30,9 +30,9 @@ or
 npm install -D serve-mock
 ```
 
-## Usage
+## 使用
 
-It is an http middleware, so you can use it in any http service:
+它是一个 `http` 中间件，因此，您可以在任何 `http` 服务中使用它：
 
 ```js
 const http = require('http')
@@ -66,7 +66,7 @@ module.exports = {
 
 ### Utils
 
-Sometimes we need to simulate network delay：
+有时我们需要模拟网络延迟：
 
 ```js
 const { delay } = require('serve-mock/utils');
@@ -76,7 +76,7 @@ module.exports = {
 };
 ```
 
-Use `delay` to delay a single object, if you want to delay all objects, use `delays`:
+使用 `delay` 延迟单个对象，如果要延迟所有对象，请使用 `delays`：
 
 ```js
 const { delays } = require('serve-mock/utils');
@@ -91,7 +91,7 @@ module.exports = delays(proxies, 100, 1000)
 
 ### Typescript
 
-If your mock file needs to use typescript syntax, you can use [@babel/register](https://babeljs.io/docs/en/next/babel-register.html) to provide compilation services：
+如果你的 `mock` 文件需要使用 [Typescript](https://www.typescriptlang.org/), 则可以使用 [@babel/register](https://babeljs.io/docs/en/next/babel-register.html) 来提供编译服务：
 
 ```js
 const { resolve } = require('path');
