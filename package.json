@@ -16,7 +16,7 @@
     "prebuild": "shx rm -rf lib/",
     "build": "tsc -d",
     "postbuild": "shx rm -f lib/dispatch.d.ts",
-    "test": "jest --coverage"
+    "test": "jest --coverage --coveragePathIgnorePatterns tests"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
