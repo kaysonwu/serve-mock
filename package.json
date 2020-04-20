@@ -13,14 +13,12 @@
     "lib"
   ],
   "scripts": {
-    "prebuild": "shx rm -f lib/*.js",
-    "build": "babel src --out-dir lib --extensions \".ts\"",
-    "prebuild:tsc": "shx rm -f lib/*.d.ts",
-    "build:tsc": "tsc -d",
+    "prebuild": "shx rm -rf lib/",
+    "build": "tsc -d",
+    "postbuild": "shx rm -f lib/dispatch.d.ts",
     "test": "jest --coverage"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-typescript": "^7.0.0",
