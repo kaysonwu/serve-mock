@@ -102,6 +102,7 @@ register({
   caller: {
     name: 'serve-mock'
   },
+  extensions: ['.ts'],
 });
 
 module.exports = {
