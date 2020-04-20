@@ -39,9 +39,7 @@ function requireMockFile(pathname: string, root: string, options: ServeMockOptio
   const mock = require(filename) as IMock;
 
   if (!options.cache) {
-    // TODO
-    console.log('requireFile', require.resolve(filename))
-   //  delete require.cache[filename];
+    delete require.cache[require.resolve(filename)];
   }
 
   return mock;
