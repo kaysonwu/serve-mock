@@ -19,9 +19,9 @@ interface ServeMockOptions {
 function resolveMockFile(pathname: string, root: string, extensions: string[]) {
   const paths = pathname.split('/');
 
-  for (let path of paths) {
+  for (let i = paths.length; i-- > 0;) {
     for (let extension of extensions) {
-      let filename = join(root, path + extension);
+      let filename = join(root, paths[i] + extension);
 
       if (existsSync(filename)) {
         return filename;
@@ -47,18 +47,18 @@ function requireMockFile(pathname: string, root: string, options: ServeMockOptio
 }
 
 function getMockValue(mock: IMock, method: string, pathname: string) {
-  const key = [method, method.toLowerCase()]
+  const key = [method.toUpperCase(), method.toLowerCase()]
     .map(m => m + ' ' + pathname)
-    .find(m => (typeof mock[m] !== undefined));
+    .find(m => (mock[m] !== undefined));
 
   if (key) {
     return mock[key];
   }
 
-  const pattren = new RegExp(`^${method}\\s*${pathname}\\s*$`, 'i');
+  const pattern = new RegExp(`^([a-z]+/)*${method}(/[a-z]+)*\\s*${pathname}\\s*$`, 'i');
 
   for (let k in mock) {
-    if (pattren.test(k)) return mock[k];
+    if (pattern.test(k)) return mock[k];
   }
 
   return false;
