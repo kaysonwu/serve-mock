@@ -69,9 +69,9 @@ export function serveMock(root: string, options?: ServeMockOptions) {
   const opts = Object.assign({ extensions: ['.js', '.ts'], cache: true }, options);
 
   return function(req: IncomingMessage, res: ServerResponse, next: Function) {
-    const { pathname } = parse(req.url);
-    const mock = requireMockFile(pathname, root, opts);
-    const value = mock && getMockValue(mock, req.method, pathname);
+    const { pathname } = parse(req.url as string);
+    const mock = requireMockFile(pathname as string, root, opts);
+    const value = mock && getMockValue(mock, req.method as string, pathname as string);
 
     if (value) {
       return dispatch(value, req, res);

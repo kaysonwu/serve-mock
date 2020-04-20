@@ -13,7 +13,10 @@
     "lib"
   ],
   "scripts": {
+    "prebuild": "shx rm -f lib/*.js",
     "build": "babel src --out-dir lib --extensions \".ts\"",
+    "prebuild:tsc": "shx rm -f lib/*.d.ts",
+    "build:tsc": "tsc -d",
     "test": "jest"
   },
   "devDependencies": {
@@ -25,6 +28,8 @@
     "@types/jest": "^25.1.0",
     "@types/node": "^8.0.0",
     "babel-jest": "^25.1.0",
-    "jest": "^25.1.0"
+    "jest": "^25.1.0",
+    "shx": "^0.3.2",
+    "typescript": "^3.5.1"
   }
 }
