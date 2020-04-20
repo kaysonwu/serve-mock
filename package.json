@@ -17,7 +17,7 @@
     "build": "babel src --out-dir lib --extensions \".ts\"",
     "prebuild:tsc": "shx rm -f lib/*.d.ts",
     "build:tsc": "tsc -d",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
