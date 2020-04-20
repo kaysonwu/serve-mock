@@ -37,13 +37,17 @@ function requireMockFile(pathname: string, root: string, options: ServeMockOptio
 
   if (!filename) return false;
 
-  const mock = require(filename) as IMock;
+  const mock = require(filename);
 
   if (!options.cache) {
     delete require.cache[require.resolve(filename)];
   }
 
-  return mock;
+  if (mock && mock.__esModule) {
+    return mock.default as IMock;
+  }
+
+  return mock as IMock;
 }
 
 function getMockValue(mock: IMock, method: string, pathname: string) {

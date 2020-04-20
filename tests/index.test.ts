@@ -9,7 +9,7 @@ const testMockServe = (url: string, method: string, options?: any, next?: Functi
     const req: any = { url, method };
     const res = createServerResponse(res => resolve(res));
     createServe(root, options)(req, res, () => {
-      resolve();
+      resolve({} as any);
 
       if (next) {
         next();
@@ -49,5 +49,11 @@ describe('Test mock serve', () => {
     await testMockServe('/api/login', 'POST', undefined, next);
 
     expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  test('should support ES module', async () => {
+    const response = await testMockServe('/api/es', 'GET');
+
+    expect(response.content).toMatch(/es/i);
   });
 });
