@@ -10,7 +10,8 @@
     "node": ">=8"
   },
   "files": [
-    "lib"
+    "lib",
+    "utils"
   ],
   "scripts": {
     "prebuild": "shx rm -rf lib/",
