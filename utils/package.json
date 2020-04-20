@@ -1,0 +1,6 @@
+{
+  "name": "serve-mock/utils",
+  "private": true,
+  "main": "../lib/utils.js",
+  "types": "../lib/utils.d.ts"
+}
