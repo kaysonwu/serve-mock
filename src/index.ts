@@ -4,7 +4,8 @@ import { existsSync } from 'fs';
 import { parse } from 'url';
 import dispatch from './dispatch';
 
-export type MockValue = string | Array<any> | Object | ((req: IncomingMessage, res: ServerResponse) => void);
+export type MockFunctionValue = (req: IncomingMessage, res: ServerResponse) => void;
+export type MockValue = string | Array<any> | Object | MockFunctionValue;
 
 export interface IMock {
   [key: string]: MockValue;
