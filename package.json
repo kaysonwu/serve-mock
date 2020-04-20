@@ -1,0 +1,30 @@
+{
+  "name": "serve-mock",
+  "version": "0.0.1",
+  "description": "Serve mock files",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "author": "kaysonwu <kaysonwu@huida.cn>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=8"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "babel src --out-dir lib --extensions \".ts\"",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-typescript": "^7.0.0",
+    "@types/babel__core": "^7.0.0",
+    "@types/jest": "^25.1.0",
+    "@types/node": "^8.0.0",
+    "babel-jest": "^25.1.0",
+    "jest": "^25.1.0"
+  }
+}
