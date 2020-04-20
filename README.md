@@ -36,9 +36,9 @@ It is an http middleware, so you can use it in any http service:
 
 ```js
 const http = require('http')
-const serveMock = require('serve-mock');
+const { createServe } = require('serve-mock');
 
-const mock = serveMock('mocks');
+const mock = createServe('mocks');
 http.createServer(function onRequest (req, res) {
   mock(req, res, () => {
     // If there is no corresponding mock file, you can do something here.
@@ -51,14 +51,14 @@ http.createServer(function onRequest (req, res) {
 
 ```js
 const { resolve } = require('path');
-const serveMock = require('serve-mock');
+const { createServe } = require('serve-mock');
 
 module.exports = {
   mode: 'development',
   devServer: {
     ....,
     after(app) {
-      app.all('*', serveMock(resolve(__dirname, 'mocks')));
+      app.all('*', createServe(resolve(__dirname, 'mocks')));
     },
   },
 };
@@ -96,7 +96,7 @@ If your mock file needs to use typescript syntax, you can use [@babel/register](
 ```js
 const { resolve } = require('path');
 const register = require('@babel/register');
-const serveMock = require('serve-mock');
+const { createServe } = require('serve-mock');
 
 register({
   caller: {
@@ -109,7 +109,7 @@ module.exports = {
   devServer: {
     ....,
     after(app) {
-      app.all('*', serveMock(resolve(__dirname, 'mocks')));
+      app.all('*', createServe(resolve(__dirname, 'mocks')));
     },
   },
 };
