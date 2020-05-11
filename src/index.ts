@@ -2,6 +2,7 @@ import { IncomingMessage, ServerResponse } from 'http';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { parse } from 'url';
+import { pathToRegexp } from 'path-to-regexp';
 import dispatch from './dispatch';
 
 export type MockFunctionValue = (req: IncomingMessage, res: ServerResponse) => void;
@@ -50,19 +51,29 @@ function requireMockFile(pathname: string, root: string, options: ServeMockOptio
   return mock as IMock;
 }
 
-function getMockValue(mock: IMock, method: string, pathname: string) {
-  const key = [method.toUpperCase(), method.toLowerCase()]
-    .map(m => m + ' ' + pathname)
-    .find(m => (mock[m] !== undefined));
+function findMockValueFromKey(mock: IMock, key: string) {
+  const keys = [key, key.toLocaleLowerCase()];
 
-  if (key) {
-    return mock[key];
+  for (let k of keys) {
+    if (mock[k] !== undefined) {
+      return mock[k];
+    }
   }
 
-  const pattern = new RegExp(`^([a-z]+/)*${method}(/[a-z]+)*\\s*${pathname}\\s*$`, 'i');
+  return false;
+}
 
-  for (let k in mock) {
-    if (pattern.test(k)) return mock[k];
+function findMockValue(mock: IMock, method: string, pathname: string) {
+  const space = /\s+/g;
+  const pattern = new RegExp(`^/?${method}`, 'i');
+
+  for (let key in mock) {
+    let [m, path] = key.split(space, 2);
+    if (pattern.test(m)
+      && pathToRegexp(path).test(pathname)
+    ) {
+      return mock[key];
+    }
   }
 
   return false;
@@ -74,7 +85,13 @@ export function createServe(root: string, options?: ServeMockOptions) {
   return function(req: IncomingMessage, res: ServerResponse, next: Function) {
     const { pathname } = parse(req.url as string);
     const mock = requireMockFile(pathname as string, root, opts);
-    const value = mock && getMockValue(mock, req.method as string, pathname as string);
+
+    if (!mock) {
+      return next();
+    }
+
+    const { method } = req;
+    const value = findMockValueFromKey(mock, (method + ' ' + pathname)) || findMockValue(mock, method, pathname);
 
     if (value) {
       return dispatch(value, req, res);

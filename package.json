@@ -30,5 +30,8 @@
     "jest": "^25.1.0",
     "shx": "^0.3.2",
     "typescript": "^3.5.1"
+  },
+  "dependencies": {
+    "path-to-regexp": "^6.0.0"
   }
 }

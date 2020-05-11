@@ -46,14 +46,22 @@ describe('Test mock serve', () => {
   test('should call the next middleware', async () => {
     const next = jest.fn(() => {});
 
-    await testMockServe('/api/login', 'POST', undefined, next);
-
+    await testMockServe('/v1/login', 'POST', undefined, next);
     expect(next).toHaveBeenCalledTimes(1);
+
+    await testMockServe('/api/login', 'POST', undefined, next);
+    expect(next).toHaveBeenCalledTimes(2);
   });
 
   test('should support ES module', async () => {
     const response = await testMockServe('/api/es', 'GET');
 
     expect(response.content).toMatch(/es/i);
+  });
+
+  test('should support request parameters', async () => {
+    const response = await testMockServe('/api/users/1', 'GET');
+
+    expect(response.content).toMatch(/zhangsan/);
   });
 });
