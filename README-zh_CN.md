@@ -15,8 +15,15 @@
 - [安装](#安装)
 - [使用](#使用)
   - [webpack-dev-server](#webpack-dev-server)
-  - [Utils](#utils)
-  - [Typescript](#typescript)
+- [Utils](#utils)
+  - [延迟](#延迟)
+  - [资源](#资源)
+    - [资源选项](#资源选项)
+    - [部分资源](#部分资源)
+    - [自定义分页](#自定义分页)
+    - [自定义验证器](#自定义验证器)
+    - [自定义响应](#自定义响应)
+- [Typescript](#typescript)
 
 ## 安装
 
@@ -64,7 +71,9 @@ module.exports = {
 };
 ```
 
-### Utils
+## Utils
+
+### 延迟
 
 有时我们需要模拟网络延迟：
 
@@ -89,7 +98,132 @@ const proxies = {
 module.exports = delays(proxies, 100, 1000)
 ```
 
-### Typescript
+### 资源
+
+`resource` 为定义一组模拟资源的 API 提供便捷方式
+
+```typescript
+function resource(name: string, initialRecords: any[] = [], options: ResourceOptions = {})
+```
+
+#### 资源选项
+
+```typescript
+type ResourceOptions = {
+  echo?: boolean;   // 创建和更新后是否回显数据
+  only?: ResourceAction[]; // 仅模拟给定的资源 API
+  except?: ResourceAction[]; // 模拟除给定外的资源 API
+  filter?: (records: any[], query: ParsedUrlQuery, req: IncomingMessage) => any; // 自定义查询结果过滤器
+  pagination?: (records: any[], query: ParsedUrlQuery) => any; // 自定义查询结果分页
+  validator?: (data: any, req: IncomingMessage, res: ServerResponse) => any; // 自定义创建和更新时的数据验证
+  responder?: (req: IncomingMessage, res: ServerResponse, data: any, type: ResourceAction) => void; // 数据响应
+}
+```
+
+一行代码即可模拟出 RESTful 风格的 API：
+
+```js
+const { resource } = require('server-mock/utils');
+
+module.exports = resource('/api/users');
+```
+
+上述代码相当于：
+
+```js
+const mock = {
+  // Create
+  'POST /api/users': (req, res) => {
+    res.statusCode = 201;
+    res.end();
+  },
+  // Update
+  'PUT /api/users/:id': (req, res) => {
+    res.statusCode = 201;
+    res.end();
+  },
+
+  // Query -> Index
+  'GET /api/users': [],
+  // Query -> Show
+  'GET /api/users/:id': {},
+
+  // Delete
+  'DELETE /api/users/:id': (req, res) => {
+    res.statusCode = 204;
+    res.end();
+  },
+}
+```
+
+#### 部分资源
+
+当声明资源 API 时，你可以指定模拟部分行为，而不是所有默认的行为：
+
+```js
+const { resource } = require('server-mock/utils');
+
+module.exports = resource('/api/users', [], { only: ['index', 'show'] });
+
+// 或者
+
+module.exports = resource('/api/users', [], { except: ['create', 'update', 'delete'] });
+```
+
+#### 自定义分页
+
+对于需要数据分页的请求，如果默认分页无法满足需求可以选择自定义：
+
+```js
+const { resource } = require('server-mock/utils');
+
+function pagination(records, query) {
+  // 在这里开始你的分页逻辑
+}
+
+module.exports = resource('/api/users', [], { pagination });
+```
+
+#### 自定义验证器
+
+为了更加真实的模拟后端 API，我们还可以对请求数据进行验证，并选择性的对请求进行报错：
+
+```js
+const { resource } = require('server-mock/utils');
+
+function validator(data: any, req: IncomingMessage, res: ServerResponse) {
+  if (data.name === 'admin') {
+    res.statusCode = 422;
+    res.write('Admin 已经存在');
+    return false;
+  }
+
+  return data;
+}
+
+module.exports = resource('/api/users', [], { validator });
+```
+
+#### 自定义响应
+
+如果你对某些 api 响应不满意，则可以自定义它：
+
+```js
+const { resource, defaultResponder } = require('server-mock/utils');
+
+function responder(req, res, data, type) {
+  if (type !== 'index') {
+    return defaultResponder(req, res, data, type);
+  } 
+
+  // 在这里开始你的响应逻辑
+}
+
+module.exports = resource('/api/users', [], { responder });
+```
+
+
+## Typescript
 
 如果你的 `mock` 文件需要使用 [Typescript](https://www.typescriptlang.org/), 则可以使用 [@babel/register](https://babeljs.io/docs/en/next/babel-register.html) 来提供编译服务：
 
