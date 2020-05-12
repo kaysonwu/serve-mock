@@ -65,7 +65,7 @@ function findMockValueFromKey(mock: IMock, key: string) {
 
 function findMockValue(mock: IMock, method: string, pathname: string) {
   const space = /\s+/g;
-  const pattern = new RegExp(`^/?${method}`, 'i');
+  const pattern = new RegExp(`(^|/)${method}(/|$)`, 'i');
 
   for (let key in mock) {
     let [m, path] = key.split(space, 2);
