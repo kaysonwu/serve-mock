@@ -6,7 +6,7 @@ export default function(value: MockValue, req: IncomingMessage, res: ServerRespo
     return value(req, res);
   }
 
-  if (Array.isArray(value) || typeof value === 'object') {
+  if (typeof value === 'object') {
     res.setHeader('Content-Type', 'application/json;charset=utf-8');
     res.write(JSON.stringify(value));
   } else {
@@ -14,4 +14,4 @@ export default function(value: MockValue, req: IncomingMessage, res: ServerRespo
   }
 
   res.end();
-};
+}
