@@ -55,8 +55,9 @@ type ResourceOptions = {
   only?: ResourceAction[];
   except?: ResourceAction[];
   filter?: (records: any[], query: ParsedUrlQuery, req: IncomingMessage) => any;
+  pagination?: (records: any[], query: ParsedUrlQuery) => any;
   validator?: (data: any, req: IncomingMessage, res: ServerResponse) => any;
-  responder?: (req: IncomingMessage, res: ServerResponse, data: any) => void;
+  responder?: (req: IncomingMessage, res: ServerResponse, data: any, type: ResourceAction) => void;
 };
 
 function getResourceActions(options: ResourceOptions) {
@@ -74,7 +75,16 @@ function getResourceActions(options: ResourceOptions) {
   return actions;
 }
 
-export function defaultPagination(records: any[], current: number, pageSize: number) {
+function defaultPagination(records: any[], query: ParsedUrlQuery) {
+  const { page } = query as any;
+
+  if (!page) {
+    return records;
+  }
+
+  const current = Math.max(1, page);
+  const pageSize = Math.max(1, (query.pageSize ||  query.page_size || 15) as any);
+
   const start = (current - 1) * pageSize;
   const end = start + pageSize;
 
@@ -101,13 +111,6 @@ function defaultFilter(records: any[], query: ParsedUrlQuery, req: IncomingMessa
     return true;
   });
 
-  const { page, page_size, pageSize } = query as any;
-
-  if (page) {
-    const size = page_size || pageSize || 15;
-    return defaultPagination(data, Math.max(1, page), Math.max(1, size));
-  }
-
   return data;
 }
 
@@ -115,7 +118,7 @@ function defaultValidator(data: any) {
   return data;
 }
 
-function defaultResponder(_: IncomingMessage, res: ServerResponse, data: any) {
+export function defaultResponder(_: IncomingMessage, res: ServerResponse, data: any) {
   res.setHeader('Content-Type', 'application/json;charset=utf-8');
   res.write(JSON.stringify(data));
   res.end();
@@ -141,6 +144,7 @@ export function resource(name: string, initialRecords: any[] = [], options: Reso
   const { 
     echo, 
     filter = defaultFilter, 
+    pagination = defaultPagination,
     validator = defaultValidator,
     responder = defaultResponder,
   } = options;
@@ -165,7 +169,7 @@ export function resource(name: string, initialRecords: any[] = [], options: Reso
         res.statusCode = 201;
 
         if (echo) {
-          return responder(req, res, record);
+          return responder(req, res, record, 'create');
         } 
         
         res.end();
@@ -198,7 +202,7 @@ export function resource(name: string, initialRecords: any[] = [], options: Reso
         res.statusCode = 201;
 
         if (echo) {
-          return responder(req, res, records[index]);
+          return responder(req, res, records[index], 'update');
         }
 
         res.end();
@@ -209,10 +213,10 @@ export function resource(name: string, initialRecords: any[] = [], options: Reso
   if (actions.includes('index')) {
     mock[`GET ${uri}`] = (req, res) => {
       const { query } = parse(req.url as string, true);
-      const data = filter(records, query, req);
+      const data = pagination(filter(records, query, req), query);
 
       res.statusCode = 200;
-      responder(req, res, data);
+      responder(req, res, data, 'index');
     }
   }
 
@@ -227,7 +231,7 @@ export function resource(name: string, initialRecords: any[] = [], options: Reso
       }
   
       res.statusCode = 200;
-      responder(req, res, record);
+      responder(req, res, record, 'show');
     }
   }
   
