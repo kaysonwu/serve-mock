@@ -1,22 +1,25 @@
-import { ServerResponse } from 'http';
+import { IncomingHttpHeaders } from 'http';
 
-export interface Response {
-  content: any;
-  headers: Record<string, number | string | string[]>;
+export function mockIncomingMessage(url: string, data: string = '', headers: IncomingHttpHeaders = {}) {
+  return {
+    url,
+    headers,
+    setEncoding: jest.fn(),
+    on: jest.fn((name: string, callback: Function) => {
+      if (name === 'data') {
+        callback(data);
+      } else {
+        callback();
+      }
+    }),
+  }
 }
 
-export function createServerResponse(done: (res: Response) => void) {
-  let res: Partial<Response> = {};  
-
+export function mockServerResponse() {
   return {
-    write(chunk: any) {
-      res.content = chunk;
-    },
-    setHeader(name: string, value: number | string | string[]) {
-      res.headers = { ...res.headers, [name]: value };
-    },
-    end() {
-      done(res as Response);
-    },
-  } as ServerResponse;
+    statusCode: 0,
+    write: jest.fn(),
+    setHeader: jest.fn(),
+    end: jest.fn(),
+  };
 }
