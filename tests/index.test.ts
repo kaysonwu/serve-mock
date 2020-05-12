@@ -1,67 +1,72 @@
 import { resolve } from 'path';
 import { createServe } from '../src/index';
-import { createServerResponse, Response } from './utils';
+import { mockServerResponse } from './utils';
 
 const root = resolve(__dirname, '__mocks__');
 
-const testMockServe = (url: string, method: string, options?: any, next?: Function) => {
-  return new Promise<Response>((resolve) => {
-    const req: any = { url, method };
-    const res = createServerResponse(res => resolve(res));
-    createServe(root, options)(req, res, () => {
-      resolve({} as any);
+function testMockServe(url: string, method: string, options?: any, next?: Function) {
+  const req: any = { url, method, headers: {} };
+  const res = mockServerResponse();
 
-      if (next) {
-        next();
-      }
-    });
+  createServe(root, options)(req, res as any, () => {
+    if (next) {
+      next();
+    }
   });
+
+  return res;
 }
 
 describe('Test mock serve', () => {
 
-  test('should be case insensitive', async () => {
-    let response = await testMockServe('/api/currentUser', 'GET');
+  test('should be case insensitive', () => {
+    let res = testMockServe('/api/currentUser', 'GET');
      
-    expect(response.content).toMatch(/name/);
-    expect(JSON.stringify(response.headers)).toMatch(/json/i);
+    expect(res.write.mock.calls.length).toBe(1);
+    expect(res.write.mock.calls[0][0]).toMatch(/name/);
 
-    response = await testMockServe('/api/users', 'POST');
+    res = testMockServe('/api/currentUser', 'get');
      
-    expect(response.content).toMatch(/201/);
+    expect(res.write.mock.calls[0][0]).toMatch(/name/);
   });
 
-  test('should match the subpath first', async () => {
-    const response = await testMockServe('/api/menus', 'GET');
+  test('match subpath files first', () => {
+    const res = testMockServe('/api/menus', 'GET');
 
-    expect(Array.isArray(JSON.parse(response.content))).toBeTruthy();
+    expect(res.write.mock.calls.length).toBe(1);
+    expect(res.write.mock.calls[0][0]).toMatch(/Home/);
   });
 
-  test('should support fuzzy match', async () => {
-    const response = await testMockServe('/api/menus', 'POST');
+  test('should support multiple methods match', () => {
+    let res = testMockServe('/api/menus', 'PUT');
 
-    expect(response.content).toMatch(/201/);
+    expect(res.write.mock.calls.length).toBe(1);
+    expect(res.write.mock.calls[0][0]).toMatch(/201/);
+
+    res = testMockServe('/api/menus', 'PATCH');
+
+    expect(res.write.mock.calls[0][0]).toMatch(/201/);
   });
 
-  test('should call the next middleware', async () => {
+  test('should call the next middleware', () => {
     const next = jest.fn(() => {});
 
-    await testMockServe('/v1/login', 'POST', undefined, next);
+    testMockServe('/v1/login', 'POST', undefined, next);
     expect(next).toHaveBeenCalledTimes(1);
 
-    await testMockServe('/api/login', 'POST', undefined, next);
+    testMockServe('/api/login', 'POST', undefined, next);
     expect(next).toHaveBeenCalledTimes(2);
   });
 
-  test('should support ES module', async () => {
-    const response = await testMockServe('/api/es', 'GET');
+  test('should support ES module', () => {
+    const res = testMockServe('/api/es', 'GET');
 
-    expect(response.content).toMatch(/es/i);
+    expect(res.write.mock.calls[0][0]).toMatch(/es/i);
   });
 
-  test('should support request parameters', async () => {
-    const response = await testMockServe('/api/users/1', 'GET');
+  test('should support request parameters', () => {
+    const res = testMockServe('/api/users/1', 'GET');
 
-    expect(response.content).toMatch(/zhangsan/);
+    expect(res.write.mock.calls[0][0]).toMatch(/zhangsan/);
   });
 });
