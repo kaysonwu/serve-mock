@@ -6,6 +6,11 @@
   "types": "lib/index.d.ts",
   "author": "kaysonwu <kaysonwu@huida.cn>",
   "license": "MIT",
+  "homepage": "https://github.com/kaysonwu/serve-mock",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaysonwu/serve-mock.git"
+  },
   "engines": {
     "node": ">=8"
   },
