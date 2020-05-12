@@ -165,7 +165,7 @@ export function resource(name: string, initialRecords: any[] = [], options: Reso
         res.statusCode = 201;
 
         if (echo) {
-          responder(req, res, record);
+          return responder(req, res, record);
         } 
         
         res.end();
@@ -226,10 +226,8 @@ export function resource(name: string, initialRecords: any[] = [], options: Reso
         return res.end();
       }
   
-      responder(req, res, record);
-
       res.statusCode = 200;
-      res.end();
+      responder(req, res, record);
     }
   }
   
