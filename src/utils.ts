@@ -162,7 +162,7 @@ export function resource(name: string, initialRecords: any[] = [], options: Reso
         }
 
         if (!record.id) {
-          record.id = records.reduce((id, c) => (c.id > id ? c.id + 1 : id), records.length + 1);
+          record.id = records.reduce((id, c) => (id > c.id  ? id : c.id + 1), records.length + 1);
         }
         
         records.push(record);
