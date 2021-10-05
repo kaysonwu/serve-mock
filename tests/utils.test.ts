@@ -1,316 +1,197 @@
-import { MockValue, IMock, MockFunctionValue } from '../src/index';
-import { delay, delays, resource, ResourceAction } from '../src/utils';
+import { IncomingMessage, ServerResponse } from 'http';
+import ArrayStore from '../src/arrayStore';
+import {
+  delay,
+  delays,
+  resource,
+  NotFoundHttpError,
+  UnprocessableEntityHttpError,
+} from '../src/index';
+import { Store } from '../src/interface';
+import isPlainObject from '../src/utils/isPlainObject';
 import { mockIncomingMessage, mockServerResponse } from './utils';
 
-const testDelay = (value: MockValue, ms: number = 5) => {
-  return new Promise<ReturnType<typeof mockServerResponse>>((resolve) => {
-    let val = value;
-    const res = mockServerResponse();
-
-    if (typeof value === 'function') {
-      val = function(req, res) {
-        resolve(value(req, res));
-      }
-    }
-
-    delay(val, ms)({ headers: {} } as any, res as any);
-    setTimeout(() => {
-      resolve(res);
-    }, ms);
-  });
-}
-
-function testResource(
-  action: ResourceAction, 
-  data: any,
-  options: any = {}
-): [ReturnType<typeof mockServerResponse>, Record<string, MockFunctionValue>] {
-  const { id, headers } = options;
-  const mock = options.mock || resource('/api/users', [{ id: 1, name: 'zhangsan' }], options);
-
-  let key = '';
-  let url = 'http://127.0.0.1/api/user';
-
-  if (id) {
-    url += '/' + id;
-  }
-
-  switch (action) {
-    case 'create':
-      key = `POST /api/users`;
-      break;
-    case 'update':
-      key = `PUT /api/users/:id`;
-      break;  
-    case 'index':
-      key = `GET /api/users`;
-
-      if (data) {
-        url += '?' + data;
-      }
-      break;  
-    case 'show':
-      key = `GET /api/users/:id`;
-      break;
-    default:
-      key = `DELETE /api/users/:id`;
-      break;    
-  }
-
-  const req = mockIncomingMessage(url, data, headers);
-  const res = mockServerResponse();
-  
-  mock[key](req as any, res as any);
-
-  return [res, mock];
-}
-
-describe('Test Utils', () => {
-
-  test('delay can response correctly', async () => {
-    let content: any = 'text content';
-    let res = await testDelay(content);
-
-    expect(res.write.mock.calls.length).toBe(1);
-    expect(res.write.mock.calls[0][0]).toEqual(content);
-
-    content = { id: 1, name: 'zhangsan' };
-    res = await testDelay(content);
-
-    expect(res.write.mock.calls[0][0]).toEqual(JSON.stringify(content));
-    expect(res.setHeader.mock.calls.length).toBe(1);
-    expect(res.setHeader.mock.calls[0][1]).toMatch(/json/i);
-
-    content = jest.fn();
-    await testDelay(content);
-    
-    expect(content.mock.calls.length).toBe(1);
+describe('Test utils', () => {
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
-  // Don't put this test in front.
-  // Because it mock setTimeout, it will interfere with other asynchronous tests.
-  test('delay has fixed and random times', () => {
-
+  test('delay', () => {
     jest.useFakeTimers();
 
-    const req: any = {};
-    const res: any = {};
-    
-    delay('Fixed times', 500)(req, res);
+    delay('', 1000)({} as IncomingMessage, {} as ServerResponse, {} as Store);
 
     expect(setTimeout).toHaveBeenCalledTimes(1);
-    expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 500);
+    expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 1000);
 
-    delay('Random times', 100, 1000)(req, res);
-
+    delays({ 'GET /api/users': '' }, 1000, 2000)['GET /api/users'](
+      {} as IncomingMessage,
+      {} as ServerResponse,
+      {} as Store,
+    );
     expect(setTimeout).toHaveBeenCalledTimes(2);
-
-    const calls: any[] = (setTimeout as any).mock.calls;
-    const ms = calls[calls.length - 1][1];
-
-    expect(ms).toBeLessThanOrEqual(1000);
-    expect(ms).toBeGreaterThanOrEqual(100);
-
-    const proxies = { 'GET /api/currentUser': { id: 1, name: 'zhangsan' }, 'POST /api/login': { status: 200 } } as IMock;
-    const delayed = delays(proxies, 5);
-
-    for (let k in delayed) {
-      delayed[k](req, res);
-    }
-
-    expect(setTimeout).toHaveBeenCalledTimes(4);
   });
 
-  describe('Test resource', () => {
-    describe('test resource create action', () => {
-      test('should be store record', () => {
-        let [res, mock] = testResource('create', 'name=wangwu');
+  test('isPlainObject', () => {
+    expect(isPlainObject({})).toBe(true);
+    expect(isPlainObject(0)).toBe(false);
+    expect(isPlainObject([])).toBe(false);
+    expect(isPlainObject('')).toBe(false);
+    expect(isPlainObject(new Date())).toBe(false);
+    expect(isPlainObject(null)).toBe(false);
+    expect(isPlainObject(undefined)).toBe(false);
+  });
 
-        expect(res.statusCode).toBe(201);
+  test('arrayStore', () => {
+    const store = new ArrayStore();
 
-        [res] =  testResource('index', '', { mock });
+    expect(store.has('key')).toBe(false);
+    expect(store.get('key')).toBe(null);
+    expect(store.put('key', 'value')).toBe(true);
+    expect(store.has('key')).toBe(true);
+    expect(store.increment('increment')).toBe(1);
+    expect(store.decrement('increment')).toBe(0);
+    expect(store.forget('increment')).toBe(true);
+    expect(store.forget('increment')).toBe(false);
+    expect(store.pull('key')).toBe('value');
+    expect(store.has('key')).toBe(false);
+    store.pull('key', 'value');
+    store.flush();
+    expect(store.has('key')).toBe(false);
+  });
 
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/wangwu/);
-      });
+  test('resource', async () => {
+    const res = mockServerResponse();
+    const store = new ArrayStore();
+    const headers = { 'content-type': 'application/x-www-form-urlencoded' };
 
-      test('should be echo record', () => {
-        const [res] = testResource('create', 'name=wangwu', { echo: true });
-   
-        expect(res.statusCode).toBe(201);
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/wangwu/);
-      });
-
-      test('should be support JSON', () => {
-        let [res, mock] = testResource('create', JSON.stringify({ name: 'wangwu' }), { headers: { 'content-type': 'application/json' } });
-
-        expect(res.statusCode).toBe(201);
-
-        [res] =  testResource('index', '', { mock });
-
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/wangwu/);
-      });
-
-      test('with custom resource validator', () => {
-        const validator = jest.fn((_, __, res) => {
-          res.statusCode = 422;
-          return false;
-        });
-
-        const [res] = testResource('create', 'name=wangwu', { validator });
-
-        expect(res.statusCode).toBe(422);
-      });
+    let mock = resource('/api/users', {
+      initialData: [
+        { id: 1, name: 'wanger', age: 18 },
+        { id: 2, name: 'mazi', age: 19 },
+      ],
     });
 
-    describe('test resource update action', () => {
-      test('should be store record', () => {
-        let [res, mock] = testResource('update', 'name=lisi', { id: 1 });
-        
-        expect(res.statusCode).toBe(201);
+    // Index
+    let req = mockIncomingMessage('GET', '/api/users');
+    mock['GET /api/users'](req, res, store);
 
-        [res] =  testResource('index', '', { mock });
+    expect(res.statusCode).toBe(200);
+    expect(res.write.mock.calls[res.write.mock.calls.length - 1][0]).toMatch(/mazi/);
 
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/lisi/);
-      });
+    req = mockIncomingMessage('GET', '/api/users?page=1&pageSize=1');
+    mock['GET /api/users'](req, res, store);
 
-      test('should be echo record', () => {
-        const [res] = testResource('update', 'name=lisi', { id: 1, echo: true });
-   
-        expect(res.statusCode).toBe(201);
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/lisi/);
-      });
+    expect(res.statusCode).toBe(200);
+    expect(res.write.mock.calls[res.write.mock.calls.length - 1][0]).not.toMatch(/mazi/);
 
-      test('should response to not found', () => {
-        const [res] = testResource('update', 'name=lisi');
+    // Create
+    req = mockIncomingMessage('POST', '/api/users', 'name=zhangsan&age=20', headers);
+    mock['POST /api/users'](req, res, store);
+    await res.wait();
 
-        expect(res.statusCode).toBe(404);
-      });
+    expect(res.statusCode).toBe(201);
+    expect(store.get('/api/users')).toHaveProperty([2, 'name'], 'zhangsan');
 
-      test('with custom resource validator', () => {
-        const validator = jest.fn((_, __, res) => {
-          res.statusCode = 422;
-          return false;
-        });
+    req = mockIncomingMessage('POST', '/api/users', '{"name": "wangwu", "age": 21}', {
+      'content-type': 'application/json;charset=utf-8',
+    });
+    mock['POST /api/users'](req, res, store);
+    await res.wait();
 
-        const [res, mock] = testResource('update', 'name=lisi', { id: 1, validator });
+    expect(res.statusCode).toBe(201);
+    expect(store.get('/api/users')).toHaveProperty([3, 'name'], 'wangwu');
 
-        expect(res.statusCode).toBe(422);
-      });
+    // Update
+    req = mockIncomingMessage('PUT', '/api/users/1024', 'name=lisi', headers);
+    mock['PUT /api/users/:id'](req, res, store);
+    expect(res.statusCode).toBe(404);
+
+    req = mockIncomingMessage('PUT', '/api/users/3', 'name=lisi', headers);
+    mock['PUT /api/users/:id'](req, res, store);
+    await res.wait();
+
+    expect(res.statusCode).toBe(201);
+    expect(store.get('/api/users')).toHaveProperty([2, 'name'], 'lisi');
+
+    // Show
+    req = mockIncomingMessage('GET', '/api/users/1024');
+    mock['GET /api/users/:id'](req, res, store);
+
+    expect(res.statusCode).toBe(404);
+
+    req = mockIncomingMessage('GET', '/api/users/3');
+    mock['GET /api/users/:id'](req, res, store);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.write.mock.calls[res.write.mock.calls.length - 1][0]).toMatch(/lisi/);
+
+    // Delete
+    req = mockIncomingMessage('DELETE', '/api/users/3,4');
+    mock['DELETE /api/users/:id'](req, res, store);
+
+    expect(res.statusCode).toBe(204);
+    expect(store.get('/api/users')).toHaveLength(2);
+
+    // Options
+    mock = resource('/api/users', { only: ['create', 'update'] });
+
+    expect(mock).toHaveProperty('POST /api/users');
+    expect(mock).toHaveProperty('PUT /api/users/:id');
+    expect(mock).not.toHaveProperty('GET /api/users');
+
+    mock = resource('/api/users', { except: ['create', 'update'] });
+
+    expect(mock).not.toHaveProperty('POST /api/users');
+    expect(mock).not.toHaveProperty('PUT /api/users/:id');
+    expect(mock).toHaveProperty('GET /api/users');
+
+    // Validator
+    mock = resource('/api/users', {
+      validator(data, req, records: Record<string, unknown>[], type) {
+        switch (type) {
+          case 'create':
+            if (typeof data === 'string') {
+              throw new UnprocessableEntityHttpError({
+                message: 'This data is invalid',
+                errors: { name: ['User name is required'] },
+              });
+            }
+            break;
+          case 'update':
+            if (data.name === 'lisi') {
+              throw new Error('No permission');
+            }
+            break;
+          case 'delete':
+            if (Number(data[0]) === 1) {
+              throw new NotFoundHttpError({ message: 'Not found.' });
+            }
+            return;
+          default:
+            break;
+        }
+
+        return data;
+      },
     });
 
-    describe('test resource index action', () => {
-      test('should support conditional filter', () => {
-        let [res, mock] = testResource('create', 'id=2&name=lisi');
-        [res] = testResource('index', 'name=lisi', { mock });
-   
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/lisi/);
+    req = mockIncomingMessage('POST', '/api/users', 'name=wanger&age=20');
+    mock['POST /api/users'](req, res, store);
+    await res.wait();
 
-        const response = JSON.parse(res.write.mock.calls[0][0]);
+    expect(res.statusCode).toBe(422);
 
-        expect(Array.isArray(response)).toBeTruthy();
-        expect(response.length).toBe(1);
-      });
+    req = mockIncomingMessage('PUT', '/api/users/1', 'name=lisi&age=20', headers);
+    mock['PUT /api/users/:id'](req, res, store);
+    await res.wait();
 
-      test('support data paging', () => {
-        let [res, mock] = testResource('create', 'id=2&name=lisi');
+    expect(res.statusCode).toBe(200);
+    expect(res.write.mock.calls[res.write.mock.calls.length - 1][0]).toMatch(/No permission/);
 
-        testResource('create', 'name=wangwu', { mock });
-        testResource('create', 'name=mazi', { mock });
-        testResource('create', 'name=niuer', { mock });
+    req = mockIncomingMessage('DELETE', '/api/users/1');
+    mock['DELETE /api/users/:id'](req, res, store);
 
-        [res] = testResource('index', 'page=1', { mock });
-
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/pagination/);
-
-        [res] = testResource('index', 'page=1&page_size=2', { mock });
-
-        const { data } = JSON.parse(res.write.mock.calls[0][0]);
-   
-        expect(data.length).toBe(2);
-        expect(data[1]).toHaveProperty('name', 'lisi');
-
-        [res] = testResource('index', 'page=2&page_size=2', { mock });
-
-        const response = JSON.parse(res.write.mock.calls[0][0]);
-   
-        expect(response.data[1]).toHaveProperty('name', 'mazi');
-      });
-
-      test('with custom resource filter', () => {
-        const filter = jest.fn(records => records);
-        const [res] = testResource('index', 'id=1', { filter });
-
-        expect(filter.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/zhangsan/);
-      });
-    });
-
-    describe('test resource show action', () => {
-      test('should be found record', () => {
-        const [res] = testResource('show', '', { id: 1 });
-
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toMatch(/zhangsan/);
-      });
-
-      test('should response to not found', () => {
-        const [res] = testResource('show', '', { id: 2 });
-
-        expect(res.statusCode).toBe(404);
-      });
-    });
-
-    describe('test resource delete action', () => {
-      test('always response 204', () => {
-        const [res] = testResource('delete', '', { id: 2 });
-
-        expect(res.statusCode).toBe(204)
-      });
-
-      test('should be support multiple ID', () => {
-        let [res, mock] = testResource('delete', '', { id: '1,2' });
-
-        expect(res.statusCode).toBe(204);
-
-        [res] = testResource('index', '', { mock });
-
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toEqual('[]');
-      });
-
-      test('should be support URL encoded', () => {
-        let [res, mock] = testResource('delete', '', { id: encodeURIComponent('1,2') });
-
-        expect(res.statusCode).toBe(204);
-
-        [res] = testResource('index', '', { mock });
-
-        expect(res.write.mock.calls.length).toBe(1);
-        expect(res.write.mock.calls[0][0]).toEqual('[]');
-      });
-    });
-
-    describe('with partial resource', () => {
-      test('should only be given resources', () => {
-        const mock = resource('/api/users', [], { only: ['show'] });
-  
-        expect(Object.keys(mock)).toHaveLength(1);
-        expect(mock).toHaveProperty('GET /api/users/:id');
-      });
-  
-      test('should except be given resources', () => {
-        const mock = resource('/api/users', [], { except: ['show'] });
-  
-        expect(Object.keys(mock)).toHaveLength(4);
-        expect(mock).toHaveProperty('GET /api/users');
-      });
-    });
+    expect(res.statusCode).toBe(404);
   });
 });

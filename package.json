@@ -15,14 +15,17 @@
     "node": ">=8"
   },
   "files": [
-    "lib",
-    "utils"
+    "lib"
   ],
   "scripts": {
     "prebuild": "shx rm -rf lib/",
-    "build": "tsc -d",
+    "build": "tsc -d --outDir lib",
     "postbuild": "shx rm -f lib/dispatch.d.ts",
     "test": "jest --coverage --coveragePathIgnorePatterns tests"
+  },
+  "dependencies": {
+    "chokidar": "3.5.0",
+    "path-to-regexp": "^6.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
@@ -35,8 +38,5 @@
     "jest": "^25.1.0",
     "shx": "^0.3.2",
     "typescript": "^3.5.1"
-  },
-  "dependencies": {
-    "path-to-regexp": "^6.0.0"
   }
 }
