@@ -21,7 +21,7 @@
     "prebuild": "shx rm -rf lib/",
     "build": "tsc -d --outDir lib",
     "postbuild": "shx rm -f lib/dispatch.d.ts",
-    "test": "jest --coverage --coveragePathIgnorePatterns tests"
+    "test": "jest --coverage --coveragePathIgnorePatterns tests src/errors"
   },
   "dependencies": {
     "chokidar": "3.5.0",
