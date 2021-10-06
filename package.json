@@ -53,7 +53,7 @@
     "eslint-plugin-jest": "^24.0.0",
     "husky": "^6.0.0",
     "jest": "^27.0.0",
-    "lint-staged": "^11.0.0",
+    "lint-staged": "^10.0.0",
     "prettier": "^2.0.0",
     "rollup": "^2.58.0",
     "shx": "^0.3.2",
