@@ -18,7 +18,7 @@
   },
   "plugins": ["jest", "@typescript-eslint"],
   "rules": {
-    "no-console": ["error", { "allow": ["warn", "error", "log"] }],
+    "no-console": ["error", { "allow": ["warn", "error"] }],
     "import/extensions": "off",
     "sort-imports": ["error", { "ignoreDeclarationSort": true }],
     // 类型导入支持尚不友好，期望类型导入也支持基本组，例如：builtin, external, internal 等等
