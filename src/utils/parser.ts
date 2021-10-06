@@ -21,7 +21,9 @@ export default function parser<T = Record<string, unknown> | string>(
     let data = '';
     req
       .setEncoding(encoding)
-      .on('data', chunk => (data += chunk))
+      .on('data', chunk => {
+        data += chunk;
+      })
       .on('end', () => resolve(parse(data, req.headers['content-type'] || '') as T))
       .on('error', reject);
   });

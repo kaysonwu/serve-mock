@@ -1,4 +1,4 @@
-import { MockFunctionValue, ResourceOptions } from '../../interface';
+import { MockFunctionValue, ResourceOptions } from '../../types';
 import parser from '../parser';
 
 export default function create(
@@ -13,7 +13,7 @@ export default function create(
 
         if (!Object.prototype.hasOwnProperty.call(record, rowKey) || !record[rowKey]) {
           record[rowKey] = records.reduce(
-            (key, row) => (key != row[rowKey] ? key : (row[rowKey] as number) + 1),
+            (key, row) => (key !== Number(row[rowKey]) ? key : (row[rowKey] as number) + 1),
             records.length + 1,
           );
         }

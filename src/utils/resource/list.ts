@@ -1,5 +1,5 @@
 import { parse } from 'url';
-import { MockFunctionValue, ResourceOptions } from '../../interface';
+import { MockFunctionValue, ResourceOptions } from '../../types';
 
 export default function list(
   name: string,

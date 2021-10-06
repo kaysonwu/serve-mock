@@ -1,5 +1,7 @@
+/* eslint-disable global-require, @typescript-eslint/no-var-requires */
 import { resolve } from 'path';
-import { createServe, ServeOptions } from '../src/index';
+import { createServe } from '../src/index';
+import { ServeOptions } from '../src/types';
 import { mockIncomingMessage, mockServerResponse } from './utils';
 
 jest.mock('chokidar', () => {
@@ -8,21 +10,21 @@ jest.mock('chokidar', () => {
 
   const originalModule = jest.requireActual('chokidar');
 
-  originalModule.FSWatcher.prototype.add = function (path: string) {
-    const add = this.rawListeners('add')[0];
-    const unlink = this.rawListeners('unlink')[0];
-    const change = this.rawListeners('change')[0];
+  originalModule.FSWatcher.prototype.add = function add(path: string) {
+    const onAdd = this.rawListeners('add')[0];
+    const onUnlink = this.rawListeners('unlink')[0];
+    const onChange = this.rawListeners('change')[0];
 
     readdirSync(path).forEach(name => {
       const filename = join(path, name);
       const stat = statSync(filename);
 
       if (name === 'login.js') {
-        unlink(filename, stat);
+        onUnlink(filename, stat);
       } else if (name === 'user.js') {
-        change(filename, stat);
+        onChange(filename, stat);
       } else if (stat.isFile()) {
-        add(filename, stat);
+        onAdd(filename, stat);
       }
     });
   };
@@ -32,7 +34,7 @@ jest.mock('chokidar', () => {
 
 const root = resolve(__dirname, '__mocks__');
 
-function testMockServe(method: string, url: string, options?: ServeOptions, next?: Function) {
+function testMockServe(method: string, url: string, options?: ServeOptions, next?: () => void) {
   const req = mockIncomingMessage(method, url);
   const res = mockServerResponse();
 
@@ -70,7 +72,9 @@ describe('Test mock serve', () => {
   });
 
   test('should call the next middleware', () => {
-    const next = jest.fn(() => {});
+    const next = jest.fn(() => {
+      // noop
+    });
 
     testMockServe('POST', '/api/login', undefined, next);
     expect(next).toHaveBeenCalledTimes(1);

@@ -1,4 +1,4 @@
-export { default as createServe, ServeOptions } from './createServe';
+export { default as createServe } from './createServe';
 export { default as AccessDeniedHttpError } from './errors/AccessDeniedHttpError';
 export { default as BadRequestHttpError } from './errors/BadRequestHttpError';
 export { default as ConflictHttpError } from './errors/ConflictHttpError';
@@ -19,4 +19,3 @@ export { delay, delays } from './utils/delay';
 export { default as resource } from './utils/resource';
 export { default as Parser } from './utils/parser';
 export { getKeyFromUrl, getKeysFromUrl } from './utils/getKeyFromUrl';
-export { Mock, MockValue, MockFunctionValue, ResourceOptions } from './interface';

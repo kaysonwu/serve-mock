@@ -1,12 +1,19 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "ESNext",
+    "target": "ES2018",
     "moduleResolution": "Node",
     "strict": true,
-    "outDir": "lib",
-    "rootDir": "src"
+    "allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "useDefineForClassFields": false,
+    "resolveJsonModule": true,
+    "noEmitOnError": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"pretty": true
   },
-  "exclude": [
-    "./tests/"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules", "lib", "./tests/"]
 }

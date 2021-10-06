@@ -1,4 +1,4 @@
-import { MockFunctionValue, ResourceOptions } from '../../interface';
+import { MockFunctionValue, ResourceOptions } from '../../types';
 import { getKeyFromUrl } from '../getKeyFromUrl';
 
 export default function show(

@@ -1,0 +1,72 @@
+{
+  "root": true,
+  "env": {
+    "es6": true,
+    "node": true,
+    "jest": true
+  },
+  "extends": [
+    "airbnb-base",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "plugin:jest/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "plugins": ["jest", "@typescript-eslint"],
+  "rules": {
+    "no-console": ["error", { "allow": ["warn", "error", "log"] }],
+    "import/extensions": "off",
+    "sort-imports": ["error", { "ignoreDeclarationSort": true }],
+    // 类型导入支持尚不友好，期望类型导入也支持基本组，例如：builtin, external, internal 等等
+    // https://github.com/import-js/eslint-plugin-import/issues/2172
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index", "type"],
+        "pathGroups": [
+          {
+            "pattern": "@/**",
+            "group": "internal"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": [],
+        "alphabetize": { "order": "asc", "caseInsensitive": false }
+      }
+    ],
+    "import/no-unresolved": [
+      "error",
+      {
+        "commonjs": false,
+        // 忽略模块别名以解除 import/no-unresolved 误报，当然还可以使用 import/resolver
+        // https://github.com/benmosher/eslint-plugin-import/blob/v2.20.2/README.md#resolvers
+        "ignore": ["^\\.+/*"]
+      }
+    ],
+    // https://github.com/typescript-eslint/typescript-eslint/issues/2540#issuecomment-692866111
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": "error",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": ["error", { "ignoreTypeValueShadow": true }]
+  },
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "rules": {
+        "@typescript-eslint/explicit-module-boundary-types": "off"
+      }
+    },
+    {
+      "files": ["*.d.ts"],
+      "rules": {
+        "max-classes-per-file": "off",
+        "lines-between-class-members": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["node_modules/**/*.*", "lib/**/*.*"]
+}

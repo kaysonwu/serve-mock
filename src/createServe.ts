@@ -1,17 +1,14 @@
-import { IncomingMessage, ServerResponse } from 'http';
-import { FSWatcher, WatchOptions } from 'chokidar';
-import requireModule from './utils/require';
+import { FSWatcher } from 'chokidar';
+import Store from './store';
+import { Mock, Serve, ServeOptions } from './types';
+import find from './utils/find';
 import isPlainObject from './utils/isPlainObject';
-import find, { Options } from './utils/find';
+import requireModule from './utils/require';
 import send from './utils/send';
-import { Mock } from './interface';
-import ArrayStore from './arrayStore';
 
-export type ServeOptions = WatchOptions & Pick<Options, 'sensitive'>;
-
-export default function createServe(paths: string | string[], options: ServeOptions = {}) {
+export default function createServe(paths: string | string[], options: ServeOptions = {}): Serve {
   const mocks: Record<string, Mock> = {};
-  const store = new ArrayStore();
+  const store = new Store();
 
   const { sensitive = true, ...watchOptions } = options;
   const watcher = new FSWatcher(watchOptions);
@@ -34,7 +31,7 @@ export default function createServe(paths: string | string[], options: ServeOpti
     })
     .add(paths);
 
-  return (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+  return (req, res, next) => {
     const value = find(req, mocks, { sensitive });
     return value ? send(req, res, value, store) : next();
   };

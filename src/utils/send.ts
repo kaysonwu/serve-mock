@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { MockValue, Store } from '../interface';
+import { MockValue, Store } from '../types';
 
 export default function send(
   req: IncomingMessage,

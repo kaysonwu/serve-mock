@@ -1,4 +1,4 @@
-import { Store } from './interface';
+import { Store } from "./types";
 
 class ArrayStore implements Store {
   /**
@@ -38,18 +38,15 @@ class ArrayStore implements Store {
   /**
    * Increment the value of an item in the storage.
    */
-  increment(key: string, value: number = 1): number {
-    if (this.has(key)) {
-      value = value + Number(this.storage[key]);
-    }
-
-    return (this.storage[key] = value);
+  increment(key: string, value = 1): number {
+    this.storage[key] = this.has(key) ? value + Number(this.storage[key]) : value;
+    return this.storage[key] as number;
   }
 
   /**
    * Decrement the value of an item in the storage.
    */
-  decrement(key: string, value: number = 1): number {
+  decrement(key: string, value = 1): number {
     return this.increment(key, value * -1);
   }
 

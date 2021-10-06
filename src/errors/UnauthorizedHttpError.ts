@@ -7,6 +7,7 @@ class UnauthorizedHttpError extends HttpError {
     message: Record<string, unknown> | string = '',
     headers: OutgoingHttpHeaders = {},
   ) {
+    // eslint-disable-next-line no-param-reassign
     headers['WWW-Authenticate'] = challenge;
     super(401, message, headers);
   }

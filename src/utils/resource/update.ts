@@ -1,4 +1,4 @@
-import { MockFunctionValue, ResourceOptions } from '../../interface';
+import { MockFunctionValue, ResourceOptions } from '../../types';
 import { getKeyFromUrl } from '../getKeyFromUrl';
 import parser from '../parser';
 
@@ -13,19 +13,19 @@ export default function update(
 
     if (index === -1) {
       res.statusCode = 404;
-      return res.end();
+      res.end();
+    } else {
+      parser<Record<string, unknown>>(req)
+        .then(data => {
+          const record = validator(data, req, records, 'update');
+
+          Object.assign(records[index], record);
+          store.put(name, records);
+
+          res.statusCode = 201;
+          responder(req, res, records[index], 'update');
+        })
+        .catch(error => errorHandler(req, res, error));
     }
-
-    parser<Record<string, unknown>>(req)
-      .then(data => {
-        const record = validator(data, req, records, 'update');
-
-        records[index] = { ...records[index], ...record };
-        store.put(name, records);
-
-        res.statusCode = 201;
-        responder(req, res, records[index], 'update');
-      })
-      .catch(error => errorHandler(req, res, error));
   };
 }

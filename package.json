@@ -12,31 +12,51 @@
     "url": "https://github.com/kaysonwu/serve-mock.git"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=10.0.0"
   },
   "files": [
     "lib"
   ],
   "scripts": {
-    "prebuild": "shx rm -rf lib/",
-    "build": "tsc -d --outDir lib",
-    "postbuild": "shx rm -f lib/dispatch.d.ts",
+    "postinstall": "husky install",
+    "build": "shx rm -rf lib && rollup --config && shx cp src/types.d.ts lib/index.d.ts",
+    "lint": "eslint . --ext '.js,.ts'",
+    "format": "prettier -c --write '**/*'",
     "test": "jest --coverage --coveragePathIgnorePatterns tests src/errors"
   },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": "prettier --write"
+  },
   "dependencies": {
-    "chokidar": "3.5.0",
+    "chokidar": "^3.5.0",
     "path-to-regexp": "^6.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-typescript": "^7.0.0",
-    "@types/babel__core": "^7.0.0",
-    "@types/jest": "^25.1.0",
-    "@types/node": "^8.0.0",
-    "babel-jest": "^25.1.0",
-    "jest": "^25.1.0",
+    "@rollup/plugin-babel": "^5.3.0",
+    "@rollup/plugin-node-resolve": "^13.0.0",
+    "@types/jest": "^27.0.0",
+    "@types/node": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.0.0",
+    "@typescript-eslint/parser": "^4.0.0",
+    "babel-jest": "^27.0.0",
+    "eslint": "^7.0.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^8.0.0",
+    "eslint-plugin-import": "^2.0.0",
+    "eslint-plugin-jest": "^24.0.0",
+    "husky": "^7.0.0",
+    "jest": "^27.0.0",
+    "lint-staged": "^11.0.0",
+    "prettier": "^2.0.0",
+    "rollup": "^2.58.0",
     "shx": "^0.3.2",
-    "typescript": "^3.5.1"
+    "typescript": "^4.0.0"
   }
 }

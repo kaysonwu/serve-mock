@@ -1,9 +1,16 @@
+# editor
+/.vscode
+
 # dependencies
 node_modules/
+yarn-error.log
 
 # production
-/.vscode
+/lib
 
 # test
 coverage/
 mocks/
+
+# macos
+.Ds_Store

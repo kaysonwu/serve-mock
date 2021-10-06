@@ -8,6 +8,7 @@ class ServiceUnavailableHttpError extends HttpError {
     headers: OutgoingHttpHeaders = {},
   ) {
     if (retryAfter) {
+      // eslint-disable-next-line no-param-reassign
       headers['Retry-After'] = retryAfter;
     }
 

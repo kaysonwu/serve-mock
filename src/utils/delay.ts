@@ -1,6 +1,7 @@
-import { Mock, MockValue, MockFunctionValue } from '../interface';
-import send from './send';
+/* eslint-disable no-restricted-syntax, guard-for-in */
+import { Mock, MockFunctionValue, MockValue } from '../types';
 import rand from './rand';
+import send from './send';
 
 export function delay(value: MockValue, min: number, max?: number): MockFunctionValue {
   const ms = max && max > min ? rand(min, max) : min;

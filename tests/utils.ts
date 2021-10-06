@@ -1,9 +1,9 @@
 import {
-  IncomingMessage,
   IncomingHttpHeaders,
-  ServerResponse,
-  OutgoingMessage,
+  IncomingMessage,
   OutgoingHttpHeaders,
+  OutgoingMessage,
+  ServerResponse,
 } from 'http';
 import { Socket } from 'net';
 
@@ -22,9 +22,9 @@ export function mockIncomingMessage(
   const req = new IncomingMessage(new Socket());
 
   Object.assign(req, {
+    headers,
     method,
     url,
-    headers,
     on(name: string, callback: (value?: unknown) => void) {
       if (name === 'data') {
         callback(data);
@@ -41,27 +41,31 @@ export function mockIncomingMessage(
 
 export function mockServerResponse(): Response {
   let end: (value?: unknown) => void;
-  let waitPromise = new Promise(resolve => (end = resolve));
+  let waitPromise = new Promise(resolve => {
+    end = resolve;
+  });
 
   return {
-    statusCode: 0,
-    headers: {},
-    write: jest.fn(),
-    setHeader: jest.fn(),
     end: () => {
       end();
-      waitPromise = new Promise(resolve => (end = resolve));
-    },
-    wait: () => waitPromise,
-    writeHead(statusCode: number, headers: OutgoingHttpHeaders): void {
-      this.statusCode = statusCode;
-      this.headers = headers;
+      waitPromise = new Promise(resolve => {
+        end = resolve;
+      });
     },
     getHeader(name: string): number | string | string[] | undefined {
       return this.headers[name];
     },
     getHeaders(): OutgoingMessage {
       return this.headers;
+    },
+    headers: {},
+    setHeader: jest.fn(),
+    statusCode: 0,
+    wait: () => waitPromise,
+    write: jest.fn(),
+    writeHead(statusCode: number, headers: OutgoingHttpHeaders): void {
+      this.statusCode = statusCode;
+      this.headers = headers;
     },
   } as unknown as Response;
 }

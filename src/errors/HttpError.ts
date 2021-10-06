@@ -30,12 +30,6 @@ class HttpError extends Error {
   getHeaders(): OutgoingHttpHeaders {
     return this.headers;
   }
-
-  setHeaders(headers: OutgoingHttpHeaders): this {
-    this.headers = headers;
-
-    return this;
-  }
 }
 
 export default HttpError;

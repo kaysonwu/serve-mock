@@ -7,7 +7,8 @@ class MethodNotAllowedHttpError extends HttpError {
     message: Record<string, unknown> | string = '',
     headers: OutgoingHttpHeaders = {},
   ) {
-    headers['Allow'] = allow.join(', ').toUpperCase();
+    // eslint-disable-next-line no-param-reassign
+    headers.Allow = allow.join(', ').toUpperCase();
     super(405, message, headers);
   }
 }

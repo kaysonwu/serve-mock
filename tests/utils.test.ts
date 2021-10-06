@@ -1,13 +1,12 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import ArrayStore from '../src/arrayStore';
 import {
+  NotFoundHttpError,
+  UnprocessableEntityHttpError,
   delay,
   delays,
   resource,
-  NotFoundHttpError,
-  UnprocessableEntityHttpError,
 } from '../src/index';
-import { Store } from '../src/interface';
+import Store from '../src/store';
 import isPlainObject from '../src/utils/isPlainObject';
 import { mockIncomingMessage, mockServerResponse } from './utils';
 
@@ -17,7 +16,7 @@ describe('Test utils', () => {
   });
 
   test('delay', () => {
-    jest.useFakeTimers();
+    jest.useFakeTimers('legacy');
 
     delay('', 1000)({} as IncomingMessage, {} as ServerResponse, {} as Store);
 
@@ -43,7 +42,7 @@ describe('Test utils', () => {
   });
 
   test('arrayStore', () => {
-    const store = new ArrayStore();
+    const store = new Store();
 
     expect(store.has('key')).toBe(false);
     expect(store.get('key')).toBe(null);
@@ -62,13 +61,13 @@ describe('Test utils', () => {
 
   test('resource', async () => {
     const res = mockServerResponse();
-    const store = new ArrayStore();
+    const store = new Store();
     const headers = { 'content-type': 'application/x-www-form-urlencoded' };
 
     let mock = resource('/api/users', {
       initialData: [
-        { id: 1, name: 'wanger', age: 18 },
-        { id: 2, name: 'mazi', age: 19 },
+        { age: 18, id: 1, name: 'wanger' },
+        { age: 19, id: 2, name: 'mazi' },
       ],
     });
 
@@ -148,13 +147,13 @@ describe('Test utils', () => {
 
     // Validator
     mock = resource('/api/users', {
-      validator(data, req, records: Record<string, unknown>[], type) {
+      validator(data, _, records, type) {
         switch (type) {
           case 'create':
             if (typeof data === 'string') {
               throw new UnprocessableEntityHttpError({
-                message: 'This data is invalid',
                 errors: { name: ['User name is required'] },
+                message: 'This data is invalid',
               });
             }
             break;
@@ -167,7 +166,7 @@ describe('Test utils', () => {
             if (Number(data[0]) === 1) {
               throw new NotFoundHttpError({ message: 'Not found.' });
             }
-            return;
+            return undefined;
           default:
             break;
         }
