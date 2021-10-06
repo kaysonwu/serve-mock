@@ -3,11 +3,12 @@
 A middleware for serving mock files
 <br /><br />
 
-![npm](https://img.shields.io/npm/v/serve-mock)
-![Node](https://img.shields.io/node/v/serve-mock)
-![Downloads](https://img.shields.io/npm/dy/serve-mock)
-![License](https://img.shields.io/npm/l/serve-mock)
-[![Build Status](https://travis-ci.com/kaysonwu/serve-mock.svg?branch=master)](https://travis-ci.com/kaysonwu/serve-mock)
+![npm](https://img.shields.io/npm/v/serve-mock?style=flat-square)
+![node](https://img.shields.io/node/v/serve-mock?style=flat-square)
+![coverage](https://img.shields.io/codecov/c/github/kaysonwu/serve-mock/master?style=flat-square)
+![downloads](https://img.shields.io/npm/dy/serve-mock?style=flat-square)
+![license](https://img.shields.io/npm/l/serve-mock?style=flat-square)
+[![build status](https://travis-ci.com/kaysonwu/serve-mock.svg?branch=master)](https://travis-ci.com/kaysonwu/serve-mock?style=flat-square)
 <br /><br />
 English | [中文](README-zh_CN.md) 
 </div>

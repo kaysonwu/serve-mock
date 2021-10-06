@@ -1,11 +1,11 @@
 language: node_js
 node_js:
-  - "8"
+  - "10"
 deploy:
   provider: npm
   email: "kayson@huida.cn"
   api_token:
-    secure: "zz5m7T6zW7bqz8PfkJtw+W3/gOlBk3earuVdPsXv24FSRSDYE8ulcXmKmB3s5EUPkKEzZ5VYTPUFn3qCzQYIW2CqsyhxXf//Jh1BV+WB92Z+oUCN96BtCimP/Mr43NbzmTXiTn8D1RYCOFFvorEVoca2sJJbMGr47Vf0Nnl/vZ5leXC+bTtouQDM03hwVU2/7lsf4Q/rL8TuCFwXPt/H3PkXcrlPMxBcBRnFhkYkJ1iwDxxYcxXnzZ3I6BCqykgWzujnuQxYtpy16S6zzbRcCmqafiYc7Vh7DzwtjvMh+NmsXL8XG6PP9lzd1lg1xsr3Nr0lvXo//IUmDwdtlqyTkmEhcmE7ogjb7FK2O6MCTDT4yL3WkUV2XXq3STMfEakwiObxCgfmY4zVFcsPTW4V4W3YvOUO5L09O8ignui3ylPhGtXlDQRc6sLSbOhsU/DQyuTZCHtLMlh/D7ZJZ/B065sjI4/499Q24M6RdvulIxybYOncLdI7eFxIk901E/MyXPyAB+Nd/grv7luhcA0qRq3wlSiIUfp/v4E+2k9aJmxkwv/AsdDxw2wOPnrSo0wQOXo77jPvW/AFsCc+FXz2a3qFf5ZpvwQt+zaTjZ7lYLBYWMudGFjdZKBSTtffFYipyk09hSmUSCKUuCVxnNYqX5lp4fK1VZk7aw+6HYJeCjk="
+    secure: "fjTto9SHpC9U8f1vYAqjdUwoDHj9xtS+5N5farKLBDlwUA4+ZrmsFZsYZomGRMgbUkMEgqZYNz4Qrp1F2qHXpBSnoilyinyeEN/grlh7MjSEJVPlqLBN+oMYQRo+RS8cfr9jxLf/7+9GQlSBl2ZCUDmTs1VjDDhGqY6nCYCPlxepReMJcU5Re4neE4f1PzGGaSArYcyrocOuARsqvFRVSTeaS5QdRR75A6BkXYj2qgt/ZbVyL/FtuOj0J7apkpK4AhLaiMNmLT4drUm4oVQ4/xlSn0jgRdU/Sur0iO1zy9PRUyklBj029VaYSsfW0ePTgNeBcr9Jbu51P6GzhsDkA3GOtUvid9gUlLPEodZtXCasKcGiApOm6BK/2zPvtSvL0xuEl9RmGvWtgrFYCmybSaxYBTlfrXUIZJa/qnJLdyE5dvJ9URTQ8AtVHYi/wlaN9Nd6uDcZuGBpkQrxyeDd8Gil/4rQsogvIAgmq1sdFggohmpZeTYmu4QtcrNoU90gLB7Xh3lpNXM7io94W3KmyJyVR88r6Qmr6ep6LH0v7a3IrMRjpaTxM0/M6vWT0r/0WsNRISHsvBrecIJDpzcSQQXf5EU7AIyiQC0eeHEgNnGIrtAvGBqMFbKpXAhu8+NmZEMh57rrD/8ZxQtlsiE08duXFM6WePQJhXwTGb0bGvI="
   on:
     branch: master
-    tags: true  
+    tags: true
