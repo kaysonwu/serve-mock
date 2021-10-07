@@ -1,12 +1,3 @@
 language: node_js
 node_js:
   - "10"
-before_deploy: "npm run build"
-deploy:
-  provider: npm
-  email: "kayson@huida.cn"
-  api_token:
-    secure: "fjTto9SHpC9U8f1vYAqjdUwoDHj9xtS+5N5farKLBDlwUA4+ZrmsFZsYZomGRMgbUkMEgqZYNz4Qrp1F2qHXpBSnoilyinyeEN/grlh7MjSEJVPlqLBN+oMYQRo+RS8cfr9jxLf/7+9GQlSBl2ZCUDmTs1VjDDhGqY6nCYCPlxepReMJcU5Re4neE4f1PzGGaSArYcyrocOuARsqvFRVSTeaS5QdRR75A6BkXYj2qgt/ZbVyL/FtuOj0J7apkpK4AhLaiMNmLT4drUm4oVQ4/xlSn0jgRdU/Sur0iO1zy9PRUyklBj029VaYSsfW0ePTgNeBcr9Jbu51P6GzhsDkA3GOtUvid9gUlLPEodZtXCasKcGiApOm6BK/2zPvtSvL0xuEl9RmGvWtgrFYCmybSaxYBTlfrXUIZJa/qnJLdyE5dvJ9URTQ8AtVHYi/wlaN9Nd6uDcZuGBpkQrxyeDd8Gil/4rQsogvIAgmq1sdFggohmpZeTYmu4QtcrNoU90gLB7Xh3lpNXM7io94W3KmyJyVR88r6Qmr6ep6LH0v7a3IrMRjpaTxM0/M6vWT0r/0WsNRISHsvBrecIJDpzcSQQXf5EU7AIyiQC0eeHEgNnGIrtAvGBqMFbKpXAhu8+NmZEMh57rrD/8ZxQtlsiE08duXFM6WePQJhXwTGb0bGvI="
-  on:
-    branch: master
-    tags: true

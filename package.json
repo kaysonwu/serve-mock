@@ -1,6 +1,6 @@
 {
   "name": "serve-mock",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "Serve mock files",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -18,8 +18,9 @@
     "lib"
   ],
   "scripts": {
-    "postinstall": "husky install && shx chmod 755 .husky/pre-commit",
+    "prepare": "husky install",
     "build": "shx rm -rf lib && rollup --config && shx cp src/types.d.ts lib/index.d.ts",
+    "prepublishOnly": "npm run build",
     "lint": "eslint . --ext '.js,.ts'",
     "format": "prettier -c --write '**/*'",
     "test": "jest --coverage --coveragePathIgnorePatterns tests src/errors"
