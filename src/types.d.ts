@@ -1,7 +1,7 @@
+import { Stats } from 'fs';
 import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'http';
 import { ParsedUrlQuery } from 'querystring';
 import { WatchOptions } from 'chokidar';
-import { TokensToRegexpOptions } from 'path-to-regexp';
 
 export interface Store {
   /**
@@ -48,11 +48,17 @@ export interface Store {
 }
 
 export type MockFunctionValue = (req: IncomingMessage, res: ServerResponse, store: Store) => void;
-export type MockValue = string | Array<unknown> | Record<string, unknown> | MockFunctionValue;
+// unknown 对接口不兼容，对类型兼容，因此使用 any，具体详见：https://github.com/microsoft/TypeScript/issues/45237
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type MockValue = string | Array<unknown> | Record<string, any> | MockFunctionValue;
 export type Mock<V = MockValue> = Record<string, V>;
 
+export interface ServeOptions extends WatchOptions {
+  sensitive?: boolean;
+  onWatch?: (eventName: 'add' | 'change' | 'unlink', path: string, stats?: Stats) => void;
+}
+
 export type Serve = (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
-export type ServeOptions = WatchOptions & Pick<TokensToRegexpOptions, 'sensitive'>;
 export function createServe(paths: string | string[], options?: ServeOptions): Serve;
 
 export function delay(value: MockValue, min: number, max?: number): MockFunctionValue;

@@ -10,24 +10,31 @@ export default function createServe(paths: string | string[], options: ServeOpti
   const mocks: Record<string, Mock> = {};
   const store = new Store();
 
-  const { sensitive = true, ...watchOptions } = options;
+  const { sensitive = true, onWatch, ...watchOptions } = options;
   const watcher = new FSWatcher(watchOptions);
 
   watcher
-    .on('add', path => {
+    .on('add', (path, stats) => {
       const module = requireModule(path);
 
       if (isPlainObject<Mock>(module)) {
         mocks[path] = module;
       }
+
+      onWatch?.('add', path, stats);
     })
-    .on('unlink', path => delete mocks[path])
-    .on('change', path => {
+    .on('unlink', path => {
+      delete mocks[path];
+      onWatch?.('unlink', path);
+    })
+    .on('change', (path, stats) => {
       const module = requireModule(path, true);
 
       if (isPlainObject<Mock>(module)) {
         mocks[path] = module;
       }
+
+      onWatch?.('change', path, stats);
     })
     .add(paths);
 
