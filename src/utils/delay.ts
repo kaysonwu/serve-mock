@@ -4,9 +4,8 @@ import rand from './rand';
 import send from './send';
 
 export function delay(value: MockValue, min: number, max?: number): MockFunctionValue {
-  const ms = max && max > min ? rand(min, max) : min;
   return (req, res, store) => {
-    setTimeout(() => send(req, res, value, store), ms);
+    setTimeout(() => send(req, res, value, store), max && max > min ? rand(min, max) : min);
   };
 }
 
