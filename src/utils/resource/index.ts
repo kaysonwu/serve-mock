@@ -6,7 +6,7 @@ import remove from './remove';
 import show from './show';
 import update from './update';
 
-const validator = ((data, req, records, type) =>
+const validator = ((data, _, __, type) =>
   type === 'delete'
     ? undefined
     : (data as Record<string, unknown>)) as ResourceOptions['validator'];
@@ -39,13 +39,13 @@ const pagination: ResourceOptions['pagination'] = (data, query) => {
   };
 };
 
-const responder: ResourceOptions['responder'] = (req, res, data) => {
+const responder: ResourceOptions['responder'] = (_, res, data) => {
   res.setHeader('Content-Type', 'application/json;charset=utf-8');
   res.write(JSON.stringify(data));
   res.end();
 };
 
-const errorHandler: ResourceOptions['errorHandler'] = (req, res, error) => {
+const errorHandler: ResourceOptions['errorHandler'] = (_, res, error) => {
   if (error instanceof HttpError) {
     res.writeHead(error.getStatusCode(), error.getHeaders());
     res.write(error.message);
@@ -57,7 +57,7 @@ const errorHandler: ResourceOptions['errorHandler'] = (req, res, error) => {
   res.end();
 };
 
-export default function resource<T extends Record<string, unknown> = Record<string, unknown>>(
+export default function resource<T = Record<string, unknown>>(
   name: string,
   options: Partial<ResourceOptions<T>> = {},
 ): Record<string, MockFunctionValue> {
@@ -71,7 +71,7 @@ export default function resource<T extends Record<string, unknown> = Record<stri
     responder,
     errorHandler,
     ...options,
-  };
+  } as ResourceOptions;
 
   const uri = `/${name.replace(/^\/|\/$/g, '')}`;
   const mock: Record<string, MockFunctionValue> = {};

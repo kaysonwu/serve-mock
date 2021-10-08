@@ -65,7 +65,7 @@ export function delay(value: MockValue, min: number, max?: number): MockFunction
 export function delays(mock: Mock, min: number, max?: number): Mock<MockFunctionValue>;
 
 export type ResourceAction = 'index' | 'create' | 'show' | 'update' | 'delete';
-export interface ResourceOptions<T extends Record<string, unknown> = Record<string, unknown>> {
+export interface ResourceOptions<T = Record<string, unknown>> {
   rowKey: string;
   initialData: T[];
   only?: ResourceAction[];
@@ -78,7 +78,7 @@ export interface ResourceOptions<T extends Record<string, unknown> = Record<stri
   errorHandler(req: IncomingMessage, res: ServerResponse, error: Error): void;
 }
 
-export function resource<T extends Record<string, unknown> = Record<string, unknown>>(
+export function resource<T = Record<string, unknown>>(
   uri: string,
   options?: Partial<ResourceOptions<T>>,
 ): Mock<MockFunctionValue>;
