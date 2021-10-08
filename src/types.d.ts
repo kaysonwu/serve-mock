@@ -64,6 +64,8 @@ export function createServe(paths: string | string[], options?: ServeOptions): S
 export function delay(value: MockValue, min: number, max?: number): MockFunctionValue;
 export function delays(mock: Mock, min: number, max?: number): Mock<MockFunctionValue>;
 
+export function rand(min: number, max: number): number;
+
 export type ResourceAction = 'index' | 'create' | 'show' | 'update' | 'delete';
 export interface ResourceOptions<T = Record<string, unknown>> {
   rowKey: string;

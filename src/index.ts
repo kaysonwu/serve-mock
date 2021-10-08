@@ -16,6 +16,7 @@ export { default as UnauthorizedHttpError } from './errors/UnauthorizedHttpError
 export { default as UnprocessableEntityHttpError } from './errors/UnprocessableEntityHttpError';
 export { default as UnsupportedMediaTypeHttpError } from './errors/UnsupportedMediaTypeHttpError';
 export { delay, delays } from './utils/delay';
+export { default as rand } from './utils/rand';
 export { default as resource } from './utils/resource';
 export { default as Parser } from './utils/parser';
 export { getKeyFromUrl, getKeysFromUrl } from './utils/getKeyFromUrl';
