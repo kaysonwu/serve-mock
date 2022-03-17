@@ -16,14 +16,15 @@ English | [中文](README-zh_CN.md)
 - [Installation](#installation)
 - [Usage](#usage)
   - [webpack-dev-server](#webpack-dev-server)
+  - [Handler](#handler)
 - [Utils](#utils)
+  - [Sleep](#sleep)
   - [Delay](#delay)
   - [Resource](#resource)
     - [Resource Options](#resource-options)
     - [Partial Resource](#partial-resource)
     - [Custom Pagination](#custom-pagination)
     - [Custom Validator](#custom-validator)
-    - [Custom Responder](#custom-responder)
 - [Typescript](#typescript)
 
 ## Installation
@@ -73,7 +74,54 @@ module.exports = {
 };
 ```
 
+### Handler
+
+`Serve mock` provide response handlers in two states, namely `errorHandler` and `successHandler`, which can meet customization requirements by modifying the response handlers.
+
+```js
+function errorHandler(_: IncomingMessage, res: ServerResponse, error: Error): void {
+  if (error instanceof HttpError) {
+    res.writeHead(error.getStatusCode(), error.getHeaders());
+    res.write(error.message);
+  } else if (error instanceof Error) {
+    res.writeHead(200, { 'Content-Type': 'application/json;charset=utf-8' });
+    res.write(JSON.stringify({ status: 400, message: error.message }));
+  }
+
+  res.end();
+}
+
+function successHandler(_: IncomingMessage, res: ServerResponse, data: unknown): void {
+  if (typeof data === 'string') {
+    res.write(data);
+  } else if (data !== undefined) {
+    res.setHeader('Content-Type', 'application/json;charset=utf-8');
+    res.write(JSON.stringify(data));
+  }
+
+  res.end();
+}
+
+createServe(resolve(__dirname, 'mocks'), { errorHandler, successHandler })
+```
+
 ## Utils
+
+### Sleep
+
+Use `sleep` to delay in the process:
+
+```js
+const { sleep, rand } = require('serve-mock');
+
+module.exports = {
+  'GET /api/currentUser': async (req, res) => {
+    await sleep(rand(1000, 2000));
+
+    // do thing.
+  },
+};
+```
 
 ### Delay
 
@@ -112,16 +160,23 @@ function resource<T extends Record<string, unknown> = Record<string, unknown>>(n
 
 ```typescript
 type ResourceOptions<T extends Record<string, unknown> = Record<string, unknown>> = {
-  rowKey?: string; // Key of data row
-  initialData?: T[]; // Initialization data
-  only?: ResourceAction[]; // Mock only given resource API
-  except?: ResourceAction[]; // Mock API except for a given resource
-  validator?(data: T, req: IncomingMessage, records: T[], type: 'create' | 'update'): T; // Custom data validation when creating and updating
+  /** The key of data row. */
+  rowKey?: string;
+  /** Initialization data. */
+  initialData?: T[];
+  /** Mock only given resource API */
+  only?: ResourceAction[];
+  /** Mock API except for a given resource */
+  except?: ResourceAction[];
+  /** Custom data validation when creating and updating, only valid for create,update and delete resource APIs */
+  validator?(data: T, req: IncomingMessage, records: T[], type: 'create' | 'update'): T;
   validator?(data: string[], req: IncomingMessage, records: T[], type: 'delete'): void;
-  pagination?(data: T[], query: ParsedUrlQuery): WithPagination<T>; // Custom query result pagination
-  filter?(data: T[], query: ParsedUrlQuery, req: IncomingMessage): T[]; // Custom query result filter
-  responder?(req: IncomingMessage, res: ServerResponse, data: T | T[], type: ResourceAction): void; // Data response
-  errorHandler?(req: IncomingMessage, res: ServerResponse, error: Error): void; // Custom error handler
+  /** Custom query result pagination, only valid for index resource API */
+  pagination?(data: T[], query: ParsedUrlQuery): WithPagination<T>;
+  /** Custom query result filter, only valid for index resource API */
+  filter?(data: T[], query: ParsedUrlQuery, req: IncomingMessage): T[];
+  /** Process the data before response.  */
+  normalize(data: T | T [], type: ResourceAction): T | T[] | void;
 }
 ```
 

@@ -3,7 +3,7 @@ import { getKeyFromUrl } from '../getKeyFromUrl';
 
 export default function show(
   name: string,
-  { rowKey, responder }: ResourceOptions,
+  { rowKey, normalize }: ResourceOptions,
 ): MockFunctionValue {
   return (req, res, store) => {
     const key = getKeyFromUrl(req.url!);
@@ -13,10 +13,11 @@ export default function show(
 
     if (!record) {
       res.statusCode = 404;
-      res.end();
-    } else {
-      res.statusCode = 200;
-      responder(req, res, record, 'show');
+      return res.end();
     }
+
+    res.statusCode = 200;
+
+    return normalize(record, 'show');
   };
 }

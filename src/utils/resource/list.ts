@@ -3,7 +3,7 @@ import { MockFunctionValue, ResourceOptions } from '../../types';
 
 export default function list(
   name: string,
-  { initialData, filter, pagination, responder }: ResourceOptions,
+  { initialData, filter, pagination, normalize }: ResourceOptions,
 ): MockFunctionValue {
   return (req, res, store) => {
     const { query } = parse(req.url as string, true);
@@ -14,6 +14,7 @@ export default function list(
     }
 
     res.statusCode = 200;
-    responder(req, res, pagination(filter(records, query, req), query), 'index');
+
+    return normalize(pagination(filter(records, query, req), query), 'index');
   };
 }

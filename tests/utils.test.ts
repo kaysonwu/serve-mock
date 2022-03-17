@@ -73,21 +73,20 @@ describe('Test utils', () => {
 
     // Index
     let req = mockIncomingMessage('GET', '/api/users');
-    mock['GET /api/users'](req, res, store);
+    let data = await mock['GET /api/users'](req, res, store);
 
     expect(res.statusCode).toBe(200);
-    expect(res.write.mock.calls[res.write.mock.calls.length - 1][0]).toMatch(/mazi/);
+    expect(data).toHaveProperty([1, 'name'], 'mazi');
 
     req = mockIncomingMessage('GET', '/api/users?page=1&pageSize=1');
-    mock['GET /api/users'](req, res, store);
+    data = await mock['GET /api/users'](req, res, store);
 
     expect(res.statusCode).toBe(200);
-    expect(res.write.mock.calls[res.write.mock.calls.length - 1][0]).not.toMatch(/mazi/);
+    expect(data).not.toHaveProperty([1, 'name'], 'mazi');
 
     // Create
     req = mockIncomingMessage('POST', '/api/users', 'name=zhangsan&age=20', headers);
-    mock['POST /api/users'](req, res, store);
-    await res.wait();
+    await mock['POST /api/users'](req, res, store);
 
     expect(res.statusCode).toBe(201);
     expect(store.get('/api/users')).toHaveProperty([2, 'name'], 'zhangsan');
@@ -95,39 +94,37 @@ describe('Test utils', () => {
     req = mockIncomingMessage('POST', '/api/users', '{"name": "wangwu", "age": 21}', {
       'content-type': 'application/json;charset=utf-8',
     });
-    mock['POST /api/users'](req, res, store);
-    await res.wait();
+    await mock['POST /api/users'](req, res, store);
 
     expect(res.statusCode).toBe(201);
     expect(store.get('/api/users')).toHaveProperty([3, 'name'], 'wangwu');
 
     // Update
     req = mockIncomingMessage('PUT', '/api/users/1024', 'name=lisi', headers);
-    mock['PUT /api/users/:id'](req, res, store);
+    await mock['PUT /api/users/:id'](req, res, store);
     expect(res.statusCode).toBe(404);
 
     req = mockIncomingMessage('PUT', '/api/users/3', 'name=lisi', headers);
-    mock['PUT /api/users/:id'](req, res, store);
-    await res.wait();
+    await mock['PUT /api/users/:id'](req, res, store);
 
     expect(res.statusCode).toBe(201);
     expect(store.get('/api/users')).toHaveProperty([2, 'name'], 'lisi');
 
     // Show
     req = mockIncomingMessage('GET', '/api/users/1024');
-    mock['GET /api/users/:id'](req, res, store);
+    await mock['GET /api/users/:id'](req, res, store);
 
     expect(res.statusCode).toBe(404);
 
     req = mockIncomingMessage('GET', '/api/users/3');
-    mock['GET /api/users/:id'](req, res, store);
+    data = await mock['GET /api/users/:id'](req, res, store);
 
     expect(res.statusCode).toBe(200);
-    expect(res.write.mock.calls[res.write.mock.calls.length - 1][0]).toMatch(/lisi/);
+    expect(data).toHaveProperty('name', 'lisi');
 
     // Delete
     req = mockIncomingMessage('DELETE', '/api/users/3,4');
-    mock['DELETE /api/users/:id'](req, res, store);
+    await mock['DELETE /api/users/:id'](req, res, store);
 
     expect(res.statusCode).toBe(204);
     expect(store.get('/api/users')).toHaveLength(2);
@@ -147,10 +144,10 @@ describe('Test utils', () => {
 
     // Validator
     mock = resource('/api/users', {
-      validator(data, _, records, type) {
+      validator(item, _, records, type) {
         switch (type) {
           case 'create':
-            if (typeof data === 'string') {
+            if (typeof item === 'string') {
               throw new UnprocessableEntityHttpError({
                 errors: { name: ['User name is required'] },
                 message: 'This data is invalid',
@@ -158,12 +155,12 @@ describe('Test utils', () => {
             }
             break;
           case 'update':
-            if (data.name === 'lisi') {
+            if (item.name === 'lisi') {
               throw new Error('No permission');
             }
             break;
           case 'delete':
-            if (Number(data[0]) === 1) {
+            if (Number(item[0]) === 1) {
               throw new NotFoundHttpError({ message: 'Not found.' });
             }
             return undefined;
@@ -171,26 +168,17 @@ describe('Test utils', () => {
             break;
         }
 
-        return data;
+        return item;
       },
     });
 
     req = mockIncomingMessage('POST', '/api/users', 'name=wanger&age=20');
-    mock['POST /api/users'](req, res, store);
-    await res.wait();
-
-    expect(res.statusCode).toBe(422);
+    await expect(mock['POST /api/users'](req, res, store)).rejects.toThrow(UnprocessableEntityHttpError);
 
     req = mockIncomingMessage('PUT', '/api/users/1', 'name=lisi&age=20', headers);
-    mock['PUT /api/users/:id'](req, res, store);
-    await res.wait();
-
-    expect(res.statusCode).toBe(200);
-    expect(res.write.mock.calls[res.write.mock.calls.length - 1][0]).toMatch(/No permission/);
+    await expect(mock['PUT /api/users/:id'](req, res, store)).rejects.toThrow(/No permission/);
 
     req = mockIncomingMessage('DELETE', '/api/users/1');
-    mock['DELETE /api/users/:id'](req, res, store);
-
-    expect(res.statusCode).toBe(404);
+    await expect(mock['DELETE /api/users/:id'](req, res, store)).rejects.toThrow(NotFoundHttpError);
   });
 });

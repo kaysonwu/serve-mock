@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// unknown 对接口不兼容，对类型兼容，因此使用 any，具体详见：https://github.com/microsoft/TypeScript/issues/45237
 import { Stats } from 'fs';
 import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'http';
 import { ParsedUrlQuery } from 'querystring';
@@ -47,14 +49,18 @@ export interface Store {
   flush(): void;
 }
 
-export type MockFunctionValue = (req: IncomingMessage, res: ServerResponse, store: Store) => void;
-// unknown 对接口不兼容，对类型兼容，因此使用 any，具体详见：https://github.com/microsoft/TypeScript/issues/45237
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type MockValue = string | Array<unknown> | Record<string, any> | MockFunctionValue;
+export type MockFunctionValue = (req: IncomingMessage, res: ServerResponse, store: Store) => Promise<any> | any;
+export type MockValue = string | Array<any> | Record<string, any> | MockFunctionValue;
 export type Mock<V = MockValue> = Record<string, V>;
 
 export interface ServeOptions extends WatchOptions {
+  /** 是否区分大小写 */
   sensitive?: boolean;
+  /** 失败响应处理器 */
+  errorHandler?: (req: IncomingMessage, res: ServerResponse, error: Error) => void;
+  /** 成功响应处理器 */
+  successHandler?: (req: IncomingMessage, res: ServerResponse, data: any) => void;
+  /** 文件监听事件 */
   onWatch?: (eventName: 'add' | 'change' | 'unlink', path: string, stats?: Stats) => void;
 }
 
@@ -68,16 +74,23 @@ export function rand(min: number, max: number): number;
 
 export type ResourceAction = 'index' | 'create' | 'show' | 'update' | 'delete';
 export interface ResourceOptions<T = Record<string, unknown>> {
+  /** 数据行的键名，默认：id */
   rowKey: string;
+  /** 初始数据 */
   initialData: T[];
+  /** 允许创建的资源请求类型  */
   only?: ResourceAction[];
+  /** 创建资源请求时需要排除掉的资源类型 */
   except?: ResourceAction[];
+  /** 数据验证器，仅对：create、update、delete 资源类型有效 */
   validator(data: T, req: IncomingMessage, records: T[], type: 'create' | 'update'): T;
   validator(data: string[], req: IncomingMessage, records: T[], type: 'delete'): void;
+  /** 分页器，仅对：index 资源类型有效 */
   pagination(data: T[], query: ParsedUrlQuery): T[] | { data: T[]; [key: string]: unknown };
+  /** 过滤器，仅对：index 资源类型有效 */
   filter(data: T[], query: ParsedUrlQuery, req: IncomingMessage): T[];
-  responder(req: IncomingMessage, res: ServerResponse, data: T | T[], type: ResourceAction): void;
-  errorHandler(req: IncomingMessage, res: ServerResponse, error: Error): void;
+  /** 在响应前对数据进行处理，如果返回 undefined 则不应答内容  */
+  normalize(data: T | T [], type: ResourceAction): T | T[] | void;
 }
 
 export function resource<T = Record<string, unknown>>(
@@ -92,6 +105,8 @@ export function parser<T = Record<string, unknown> | string>(
 
 export function getKeyFromUrl(url: string): string;
 export function getKeysFromUrl(url: string): string[];
+
+export function sleep(ms: number): Promise<void>;
 
 export class HttpError extends Error {
   constructor(

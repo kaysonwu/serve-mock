@@ -16,14 +16,15 @@
 - [安装](#安装)
 - [使用](#使用)
   - [webpack-dev-server](#webpack-dev-server)
+  - [响应处理器](#响应处理器)  
 - [Utils](#utils)
+  - [休眠](#休眠)
   - [延迟](#延迟)
   - [资源](#资源)
     - [资源选项](#资源选项)
     - [部分资源](#部分资源)
     - [自定义分页](#自定义分页)
     - [自定义验证器](#自定义验证器)
-    - [自定义响应](#自定义响应)
 - [Typescript](#typescript)
 
 ## 安装
@@ -73,7 +74,54 @@ module.exports = {
 };
 ```
 
+### 响应处理器
+
+`Serve mock` 提供了两种状态的响应处理器，分别是：`errorHandler` 和 `successHandler`，可以通过对响应处理器的修改已满足定制化需求。
+
+```js
+function errorHandler(_: IncomingMessage, res: ServerResponse, error: Error): void {
+  if (error instanceof HttpError) {
+    res.writeHead(error.getStatusCode(), error.getHeaders());
+    res.write(error.message);
+  } else if (error instanceof Error) {
+    res.writeHead(200, { 'Content-Type': 'application/json;charset=utf-8' });
+    res.write(JSON.stringify({ status: 400, message: error.message }));
+  }
+
+  res.end();
+}
+
+function successHandler(_: IncomingMessage, res: ServerResponse, data: unknown): void {
+  if (typeof data === 'string') {
+    res.write(data);
+  } else if (data !== undefined) {
+    res.setHeader('Content-Type', 'application/json;charset=utf-8');
+    res.write(JSON.stringify(data));
+  }
+
+  res.end();
+}
+
+createServe(resolve(__dirname, 'mocks'), { errorHandler, successHandler })
+```
+
 ## Utils
+
+### 休眠
+
+可以通过 `sleep` 在流程中实现延迟需求
+
+```js
+const { sleep, rand } = require('serve-mock');
+
+module.exports = {
+  'GET /api/currentUser': async (req, res) => {
+    await sleep(rand(1000, 2000));
+
+    // do thing.
+  },
+};
+```
 
 ### 延迟
 
@@ -112,16 +160,23 @@ function resource<T extends Record<string, unknown> = Record<string, unknown>>(n
 
 ```typescript
 interface ResourceOptions<T extends Record<string, unknown> = Record<string, unknown>> = {
-  rowKey?: string; // 数据行的键名
-  initialData?: T[]; // 初始化数据
-  only?: ResourceAction[]; // 仅模拟给定的资源 API
-  except?: ResourceAction[]; // 模拟除给定外的资源 API
-  validator?(data: T, req: IncomingMessage, records: T[], type: 'create' | 'update'): T; // 自定义创建和更新时的数据验证
-  validator?(data: string[], req: IncomingMessage, records: T[], type: 'delete'): void;
-  pagination?(data: T[], query: ParsedUrlQuery): WithPagination<T>; // 自定义查询结果分页
-  filter?(data: T[], query: ParsedUrlQuery, req: IncomingMessage): T[]; // 自定义查询结果过滤器
-  responder?(req: IncomingMessage, res: ServerResponse, data: T | T[], type: ResourceAction): void; // 自定义数据响应
-  errorHandler?(req: IncomingMessage, res: ServerResponse, error: Error): void; // 自定义错误处理程序
+  /** 数据行的键名，默认：id */
+  rowKey: string;
+  /** 初始数据 */
+  initialData: T[];
+  /** 允许创建的资源请求类型  */
+  only?: ResourceAction[];
+  /** 创建资源请求时需要排除掉的资源类型 */
+  except?: ResourceAction[];
+  /** 数据验证器，仅对：create、update、delete 资源类型有效 */
+  validator(data: T, req: IncomingMessage, records: T[], type: 'create' | 'update'): T;
+  validator(data: string[], req: IncomingMessage, records: T[], type: 'delete'): void;
+  /** 分页器，仅对：index 资源类型有效 */
+  pagination(data: T[], query: ParsedUrlQuery): T[] | { data: T[]; [key: string]: unknown };
+  /** 过滤器，仅对：index 资源类型有效 */
+  filter(data: T[], query: ParsedUrlQuery, req: IncomingMessage): T[];
+  /** 在响应前对数据进行处理，如果返回 undefined 则不应答内容  */
+  normalize(data: T | T [], type: ResourceAction): T | T[] | void;
 }
 ```
 
@@ -206,21 +261,6 @@ const validator: ResourceOptions['validator'] = (data, req, records, type) => {
 
 module.exports = resource('/api/users', { validator });
 ```
-
-#### 自定义响应
-
-如果你对某些 api 响应不满意，则可以自定义它：
-
-```js
-const { resource, ResourceOptions } = require('server-mock');
-
-const responder: ResourceOptions['responder'] = (req, res, data, type) => {
-  // 在这里开始你的响应逻辑
-};
-
-module.exports = resource('/api/users', { responder });
-```
-
 
 ## Typescript
 

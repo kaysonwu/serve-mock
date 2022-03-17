@@ -4,28 +4,26 @@ import parser from '../parser';
 
 export default function update(
   name: string,
-  { rowKey, validator, responder, errorHandler }: ResourceOptions,
+  { rowKey, validator, normalize }: ResourceOptions,
 ): MockFunctionValue {
-  return (req, res, store) => {
+  return async (req, res, store) => {
     const key = getKeyFromUrl(req.url!);
     const records = store.get<Record<string, unknown>[]>(name, []);
     const index = records.findIndex(record => String(record[rowKey]) === key);
 
     if (index === -1) {
       res.statusCode = 404;
-      res.end();
-    } else {
-      parser<Record<string, unknown>>(req)
-        .then(data => {
-          const record = validator(data, req, records, 'update');
-
-          Object.assign(records[index], record);
-          store.put(name, records);
-
-          res.statusCode = 201;
-          responder(req, res, records[index], 'update');
-        })
-        .catch(error => errorHandler(req, res, error));
+      return res.end();
     }
+
+    const data = await parser<Record<string, unknown>>(req);
+    const record = await validator(data, req, records, 'update');
+
+    Object.assign(records[index], record);
+    store.put(name, records);
+
+    res.statusCode = 201;
+
+    return normalize(records[index], 'update');
   };
 }

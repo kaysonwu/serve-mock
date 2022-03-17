@@ -2,10 +2,12 @@
 import { Mock, MockFunctionValue, MockValue } from '../types';
 import rand from './rand';
 import send from './send';
+import sleep from './sleep';
 
 export function delay(value: MockValue, min: number, max?: number): MockFunctionValue {
-  return (req, res, store) => {
-    setTimeout(() => send(req, res, value, store), max && max > min ? rand(min, max) : min);
+  return async (req, res, store) => {
+    await sleep(max && max > min ? rand(min, max) : min);
+    return send(req, res, value, store);
   };
 }
 

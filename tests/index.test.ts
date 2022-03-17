@@ -34,11 +34,11 @@ jest.mock('chokidar', () => {
 
 const root = resolve(__dirname, '__mocks__');
 
-function testMockServe(method: string, url: string, options?: ServeOptions, next?: () => void) {
+async function testMockServe(method: string, url: string, options?: ServeOptions, next?: () => void) {
   const req = mockIncomingMessage(method, url);
   const res = mockServerResponse();
 
-  createServe(root, options)(req, res, () => {
+  await createServe(root, options)(req, res, () => {
     if (next) {
       next();
     }
@@ -48,26 +48,26 @@ function testMockServe(method: string, url: string, options?: ServeOptions, next
 }
 
 describe('Test mock serve', () => {
-  test('method should be case insensitive', () => {
-    let res = testMockServe('GET', '/api/currentUser');
+  test('method should be case insensitive', async () => {
+    let res = await testMockServe('GET', '/api/currentUser');
 
     expect(res.write.mock.calls.length).toBe(1);
     expect(res.write.mock.calls[0][0]).toMatch(/name/);
 
-    res = testMockServe('get', '/api/currentUser');
+    res = await testMockServe('get', '/api/currentUser');
     expect(res.write.mock.calls[0][0]).toMatch(/name/);
 
-    res = testMockServe('POST', '/api/users');
+    res = await testMockServe('POST', '/api/users');
     expect(res.write.mock.calls[0][0]).toMatch(/success/);
   });
 
-  test('should support multiple methods match', () => {
-    let res = testMockServe('PUT', '/api/users');
+  test('should support multiple methods match', async () => {
+    let res = await testMockServe('PUT', '/api/users');
 
     expect(res.write.mock.calls.length).toBe(1);
     expect(res.write.mock.calls[0][0]).toMatch(/201/);
 
-    res = testMockServe('PATCH', '/api/users');
+    res = await testMockServe('PATCH', '/api/users');
     expect(res.write.mock.calls[0][0]).toMatch(/201/);
   });
 
@@ -83,14 +83,18 @@ describe('Test mock serve', () => {
     expect(next).toHaveBeenCalledTimes(2);
   });
 
-  test('should support ES module', () => {
-    const res = testMockServe('GET', '/api/es');
-
+  test('should support ES module', async () => {
+    const res = await testMockServe('GET', '/api/es');
     expect(res.write.mock.calls[0][0]).toMatch(/es/i);
   });
 
-  test('should support request parameters', () => {
-    const res = testMockServe('GET', '/api/users/1');
+  test('should support request parameters', async () => {
+    const res = await testMockServe('GET', '/api/users/1');
     expect(res.write.mock.calls[0][0]).toMatch(/zhangsan/);
+  });
+
+  test('should support error handler', async () => {
+    const res = await testMockServe('GET', '/api/error');
+    expect(res.write.mock.calls[0][0]).toMatch(/error/);
   });
 });

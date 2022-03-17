@@ -1,4 +1,3 @@
-import HttpError from '../../errors/HttpError';
 import { MockFunctionValue, ResourceOptions } from '../../types';
 import create from './create';
 import list from './list';
@@ -39,23 +38,7 @@ const pagination: ResourceOptions['pagination'] = (data, query) => {
   };
 };
 
-const responder: ResourceOptions['responder'] = (_, res, data) => {
-  res.setHeader('Content-Type', 'application/json;charset=utf-8');
-  res.write(JSON.stringify(data));
-  res.end();
-};
-
-const errorHandler: ResourceOptions['errorHandler'] = (_, res, error) => {
-  if (error instanceof HttpError) {
-    res.writeHead(error.getStatusCode(), error.getHeaders());
-    res.write(error.message);
-  } else if (error instanceof Error) {
-    res.writeHead(200, { 'Content-Type': 'application/json;charset=utf-8' });
-    res.write(JSON.stringify({ status: 400, message: error.message }));
-  }
-
-  res.end();
-};
+const normalize: ResourceOptions['normalize'] = data => data;
 
 export default function resource<T = Record<string, unknown>>(
   name: string,
@@ -68,8 +51,7 @@ export default function resource<T = Record<string, unknown>>(
     validator,
     filter,
     pagination,
-    responder,
-    errorHandler,
+    normalize,
     ...options,
   } as ResourceOptions;
 
