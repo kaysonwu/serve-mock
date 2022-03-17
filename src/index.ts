@@ -18,5 +18,5 @@ export { default as UnsupportedMediaTypeHttpError } from './errors/UnsupportedMe
 export { delay, delays } from './utils/delay';
 export { default as rand } from './utils/rand';
 export { default as resource } from './utils/resource';
-export { default as Parser } from './utils/parser';
+export { default as parser } from './utils/parser';
 export { getKeyFromUrl, getKeysFromUrl } from './utils/getKeyFromUrl';
