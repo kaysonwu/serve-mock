@@ -2,8 +2,8 @@
 // unknown 对接口不兼容，对类型兼容，因此使用 any，具体详见：https://github.com/microsoft/TypeScript/issues/45237
 import { Stats } from 'fs';
 import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'http';
-import { ParsedUrlQuery } from 'querystring';
 import { WatchOptions } from 'chokidar';
+import { ParsedQs } from 'qs';
 
 export interface Store {
   /**
@@ -86,9 +86,9 @@ export interface ResourceOptions<T = Record<string, unknown>> {
   validator(data: T, req: IncomingMessage, records: T[], type: 'create' | 'update'): T;
   validator(data: string[], req: IncomingMessage, records: T[], type: 'delete'): void;
   /** 分页器，仅对：index 资源类型有效 */
-  pagination(data: T[], query: ParsedUrlQuery): T[] | { data: T[]; [key: string]: unknown };
+  pagination(data: T[], query: ParsedQs): T[] | { data: T[]; [key: string]: unknown };
   /** 过滤器，仅对：index 资源类型有效 */
-  filter(data: T[], query: ParsedUrlQuery, req: IncomingMessage): T[];
+  filter(data: T[], query: ParsedQs, req: IncomingMessage): T[];
   /** 在响应前对数据进行处理，如果返回 undefined 则不应答内容  */
   normalize(data: T | T [], type: ResourceAction): T | T[] | void;
 }

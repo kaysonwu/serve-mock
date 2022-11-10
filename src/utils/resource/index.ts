@@ -1,4 +1,5 @@
 import { MockFunctionValue, ResourceOptions } from '../../types';
+import isPlainObject from '../isPlainObject';
 import create from './create';
 import list from './list';
 import remove from './remove';
@@ -13,7 +14,25 @@ const validator = ((data, _, __, type) =>
 const filter: ResourceOptions['filter'] = (data, query) => {
   const keys = Object.keys(query);
   return data.filter(row =>
-    keys.every(key => !Object.prototype.hasOwnProperty.call(row, key) || query[key] === row[key]),
+    keys.every(key => {
+      if (!Object.prototype.hasOwnProperty.call(row, key)) {
+        return true;
+      }
+
+      if (isPlainObject(query[key])) {
+        return (
+          isPlainObject(row[key]) &&
+          Object.keys(query[key] as Record<string, unknown>).every(
+            name =>
+              !Object.prototype.hasOwnProperty.call(row[key], name) ||
+              (query[key] as Record<string, unknown>)[name] ===
+                (row[key] as Record<string, unknown>)[name],
+          )
+        );
+      }
+
+      return query[key] === row[key];
+    }),
   );
 };
 
