@@ -78,6 +78,8 @@ export interface ResourceOptions<T = Record<string, unknown>> {
   rowKey: string;
   /** 初始数据 */
   initialData: T[];
+  /** 截取数据长度的键名。请求列表数据时，当该查询参数为 1 时，只返回单条数据 */
+  takeKey?: string;
   /** 允许创建的资源请求类型  */
   only?: ResourceAction[];
   /** 创建资源请求时需要排除掉的资源类型 */

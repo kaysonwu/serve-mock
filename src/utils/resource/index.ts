@@ -66,6 +66,7 @@ export default function resource<T = Record<string, unknown>>(
   const { only: actions = ['index', 'create', 'show', 'update', 'delete'], except = [] } = options;
   const mergedOptions = {
     rowKey: 'id',
+    takeKey: 'take',
     initialData: [],
     validator,
     filter,
