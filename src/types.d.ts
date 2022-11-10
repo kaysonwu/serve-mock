@@ -182,8 +182,8 @@ export class TooManyRequestsHttpError extends HttpError {
 
 export class UnauthorizedHttpError extends HttpError {
   constructor(
-    challenge: string,
     message?: Record<string, unknown> | string,
+    challenge?: string,
     headers?: OutgoingHttpHeaders,
   );
 }
